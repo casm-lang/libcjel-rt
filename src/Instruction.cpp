@@ -27,7 +27,7 @@ using namespace libcsel_rt;
 
 static void what( void )
 {
-    libcsel_ir::AddInstruction a;
+    libcsel_ir::AddSignedInstruction a( 0, 0 );
 
     Instruction::compile( a );
 }

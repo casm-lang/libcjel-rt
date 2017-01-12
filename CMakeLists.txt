@@ -54,7 +54,8 @@ include_directories(
   ${LIBS}/gtest/googletest/include
   ${LIBS}/hayai/src
   ${LIBS}/stdhl
-  ${LIBS}/csel-ir
+  ${LIBS}/csel-ir  
+  ${LIBS}/asmjit/src
 )
 
 
@@ -65,8 +66,14 @@ set( CMAKE_CXX_FLAGS_RELEASE  "${CMAKE_CXX_FLAGS_RELEASE}  -O3" )
 set( CMAKE_CXX_FLAGS_SANITIZE "${CMAKE_CXX_FLAGS_SANITIZE} -O1 -Wextra -g -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize=undefined -fsanitize=address" )
 
 
+file( GLOB_RECURSE CXX_ASMJIT_FILES "${LIBS}/asmjit/src/asmjit/*.cpp" )
+# add_library( asmjit  
+# )
+
+
 add_library( ${TARGET} STATIC
   ${CXX_SRC_FILES}
+  ${CXX_ASMJIT_FILES}
 )
 
 

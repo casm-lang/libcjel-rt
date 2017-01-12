@@ -30,14 +30,16 @@
 #ifndef _LIB_CSELRT_INSTRUCTION_H_
 #define _LIB_CSELRT_INSTRUCTION_H_
 
-#include "CselIR.h"
+#include "CselRT.h"
+
+#include "../csel-ir/src/Instruction.h"
 
 namespace libcsel_rt
 {
     class Instruction : public CselRT
     {
       public:
-        static inline void compile( const libcsel_ir::AddInstruction& value )
+        static inline void compile( const libcsel_ir::AddSignedInstruction& value )
         {
             value;
             return;
