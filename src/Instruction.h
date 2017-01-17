@@ -39,12 +39,16 @@ namespace libcsel_rt
     class Instruction : public CselRT
     {
       public:
-        static inline void compile( const libcsel_ir::AddSignedInstruction& value )
+        static inline void compile(
+            const libcsel_ir::AddSignedInstruction& value )
         {
             value;
             return;
         }
     };
+
+    
+    void test_asmjit( void );
 }
 
 #endif /* _LIB_CSELRT_INSTRUCTION_H_ */
