@@ -96,7 +96,6 @@ TEST( libcsel_rt__asmjit, compiler )
 
     X86Compiler cc( &code );
 
-    // c.addFunc(kFuncConvHost, FuncBuilder0<double>());
     cc.addFunc( FuncSignature0< u8 >( CallConv::kIdHost ) );
 
     X86Gp r0 = cc.newU8( "r0" );
@@ -118,6 +117,90 @@ TEST( libcsel_rt__asmjit, compiler )
     u8 result = fn();
 
     ASSERT_EQ( (int)result, 4 );
+
+    rt.release( fn );
+}
+
+TEST( libcsel_rt__asmjit, compiler2 )
+{
+    // typedef u8 ( *Func )( u64 );
+
+    JitRuntime rt;
+    CodeHolder code;
+    code.init( rt.getCodeInfo() );
+
+    X86Compiler cc( &code );
+
+    FuncSignatureX fsx;
+    fsx.setCallConv( CallConv::kIdHost );
+    // fsx.setRet( TypeId::kU8 );
+    fsx.addArg( TypeId::kUIntPtr );
+    fsx.addArg( TypeId::kUIntPtr );
+    fsx.addArg( TypeId::kUIntPtr );
+    fsx.addArg( TypeId::kUIntPtr );
+    cc.addFunc( fsx );
+
+    // in
+    X86Gp ivp = cc.newUIntPtr( "ivp" );
+    cc.setArg( 0, ivp );
+    X86Gp idp = cc.newUIntPtr( "idp" );
+    cc.setArg( 1, idp );
+
+    // out
+    X86Gp bvp = cc.newUIntPtr( "bvp" );
+    cc.setArg( 2, bvp );
+    X86Gp bdp = cc.newUIntPtr( "bdp" );
+    cc.setArg( 3, bdp );
+
+    X86Gp iv = cc.newU64( "iv" );
+    X86Gp id = cc.newU8( "id" );
+
+    cc.mov( iv, x86::ptr64( ivp ) );
+    cc.mov( id, x86::ptr8( idp ) );
+
+    cc.and_( iv, imm( 0x1 ) );
+
+    cc.mov( x86::ptr8( bvp ), iv.r8() );
+    cc.mov( x86::ptr8( bdp ), id );
+
+    cc.endFunc();
+    cc.finalize();
+
+    void** fn;
+    Error err = rt.add( &fn, &code );
+
+    ASSERT_EQ( err, 0 );
+
+    u64 ivc;
+    u8 idc;
+    u8 bvc;
+    u8 bdc;
+
+    typedef void ( *FP )( u64*, u8*, u8*, u8* );
+
+    ivc = 25;
+    idc = 1;
+    bvc = -1;
+    bdc = -1;
+
+    ( (FP)fn )( &ivc, &idc, &bvc, &bdc );
+
+    EXPECT_EQ( (int)ivc, 25 );
+    EXPECT_EQ( (int)idc, 1 );
+    EXPECT_EQ( (int)bvc, 1 );
+    EXPECT_EQ( (int)bdc, 1 );
+
+    ivc = 123;
+    idc = 0;
+    bvc = -1;
+    bdc = -1;
+
+    ( (FP)fn )( &ivc, &idc, &bvc, &bdc );
+
+    EXPECT_EQ( (int)ivc, 123 );
+    EXPECT_EQ( (int)idc, 0 );
+    EXPECT_EQ( (int)bvc, 1 );
+    EXPECT_EQ( (int)bdc, 0 );
 
     rt.release( fn );
 }

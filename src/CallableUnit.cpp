@@ -21,36 +21,27 @@
 //  along with libcsel-rt. If not, see <http://www.gnu.org/licenses/>.
 //
 
-/**
-   @brief    TODO
+#include "CallableUnit.h"
 
-   TODO
-*/
+#include "transform/CselIRToAsmJitPass.h"
 
-#ifndef _LIB_CSELRT_INSTRUCTION_H_
-#define _LIB_CSELRT_INSTRUCTION_H_
+#include "../stdhl/cpp/Default.h"
+#include "../stdhl/cpp/Log.h"
 
-#include "CselRT.h"
+#include "../csel-ir/src/CallableUnit.h"
+#include "../csel-ir/src/Value.h"
+#include "../csel-ir/src/Visitor.h"
 
-#include "../csel-ir/src/Instruction.h"
+using namespace libcsel_rt;
 
-namespace libcsel_rt
+void CallableUnit::compile( libcsel_ir::CallableUnit& value )
 {
-    class Instruction : public CselRT
-    {
-      public:
-        static inline void compile(
-            const libcsel_ir::AddSignedInstruction& value )
-        {
-            value;
-            return;
-        }
-    };
+    libcsel_rt::CselIRToAsmJitPass x;
 
-    void test_asmjit( void );
+    libcsel_rt::CselIRToAsmJitPass::Context cxt;
+
+    value.iterate( libcsel_ir::Traversal::PREORDER, &x, (void*)( &cxt ) );
 }
-
-#endif /* _LIB_CSELRT_INSTRUCTION_H_ */
 
 //
 //  Local variables:

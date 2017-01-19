@@ -27,30 +27,26 @@
    TODO
 */
 
-#ifndef _LIB_CSELRT_INSTRUCTION_H_
-#define _LIB_CSELRT_INSTRUCTION_H_
+#ifndef _LIB_CSELRT_CALLABLEUNIT_H_
+#define _LIB_CSELRT_CALLABLEUNIT_H_
 
 #include "CselRT.h"
 
-#include "../csel-ir/src/Instruction.h"
+namespace libcsel_ir
+{
+    class CallableUnit;
+}
 
 namespace libcsel_rt
 {
-    class Instruction : public CselRT
+    class CallableUnit : public CselRT
     {
       public:
-        static inline void compile(
-            const libcsel_ir::AddSignedInstruction& value )
-        {
-            value;
-            return;
-        }
+        static void compile( libcsel_ir::CallableUnit& value );
     };
-
-    void test_asmjit( void );
 }
 
-#endif /* _LIB_CSELRT_INSTRUCTION_H_ */
+#endif /* _LIB_CSELRT_CALLABLEUNIT_H_ */
 
 //
 //  Local variables:

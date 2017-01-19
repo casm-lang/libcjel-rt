@@ -31,6 +31,7 @@ endif()
 
 foreach( DEPENDENCY
     stdhl
+    pass
     csel-ir
     )
   if( NOT TARGET ${DEPENDENCY} )
@@ -54,6 +55,7 @@ include_directories(
   ${LIBS}/gtest/googletest/include
   ${LIBS}/hayai/src
   ${LIBS}/stdhl
+  ${LIBS}/pass
   ${LIBS}/csel-ir  
   ${LIBS}/asmjit/src
 )
@@ -91,6 +93,7 @@ target_link_libraries( ${TARGET}-check
   ${TARGET}
   pthread
   stdhl
+  pass
   csel-ir
 )
 

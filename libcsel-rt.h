@@ -25,6 +25,7 @@
 #define _LIB_CSELRT_H_
 
 #include "src/Instruction.h"
+#include "src/CallableUnit.h"
 
 namespace libcsel_rt
 {
