@@ -38,9 +38,31 @@ void CallableUnit::compile( libcsel_ir::CallableUnit& value )
 {
     libcsel_rt::CselIRToAsmJitPass x;
 
-    libcsel_rt::CselIRToAsmJitPass::Context cxt;
+    libcsel_rt::CselIRToAsmJitPass::Context c;
 
-    value.iterate( libcsel_ir::Traversal::PREORDER, &x, (void*)( &cxt ) );
+    value.iterate( libcsel_ir::Traversal::PREORDER, &x, (void*)( &c ) );
+
+    typedef void ( *CallableType )( void*, void* );
+
+    struct I
+    {
+        u64 v;
+        u8 d;
+    };
+
+    struct B
+    {
+        u8 v;
+        u8 d;
+    };
+
+    I i{ 44, 22 };
+    B b{ 1, 0 };
+
+    ( (CallableType)c.getCallable( &value ).getPtr() )( &i, &b );
+
+    libstdhl::Log::info( "%s: %p: %lu, %u --> %u, %u", __FUNCTION__,
+        c.getCallable( &value ).getPtr(), i.v, i.d, b.v, b.d );
 }
 
 //

@@ -25,6 +25,9 @@
 
 #include "../csel-ir/src/analyze/CselIRDumpPass.h"
 
+#include "../stdhl/cpp/Default.h"
+#include "../stdhl/cpp/Math.h"
+
 using namespace libcsel_ir;
 using namespace libcsel_rt;
 using namespace asmjit;
@@ -41,9 +44,103 @@ bool CselIRToAsmJitPass::run( libpass::PassResult& pr )
 }
 
 #define TRACE( FMT, ARGS... )                                                  \
-    libstdhl::Log::info( "%s:%i: %p: %s '%s' @ %p" FMT, __FUNCTION__,          \
-        __LINE__, &value, value.getName(), value.getType()->getName(), cxt,    \
+    libstdhl::Log::info( "%s:%i: %p: %s | %s | '%s' | size=%lu | @ %p" FMT,    \
+        __FUNCTION__,                                                          \
+        __LINE__,                                                              \
+        &value,                                                                \
+        value.getName(),                                                       \
+        value.getLabel(),                                                      \
+        value.getType()->getName(),                                            \
+        value.getType()->getSize(),                                            \
+        cxt,                                                                   \
         ##ARGS )
+
+static asmjit::X86Gp& alloc_reg_for_value(
+    Value& value, CselIRToAsmJitPass::Context& c )
+{
+    assert( value.getType() );
+    Type& type = *value.getType();
+
+    switch( type.getID() )
+    {
+        case Type::BIT:
+        {
+            if( type.getSize() < 1 )
+            {
+                assert( not" bit type has invalid bit-size of '0' " );
+            }
+            else if( type.getSize() <= 8 )
+            {
+                c.getVal2Reg()[&value ]
+                    = c.getCompiler().newU8( value.getLabel() );
+            }
+            else if( type.getSize() <= 16 )
+            {
+                c.getVal2Reg()[&value ]
+                    = c.getCompiler().newU16( value.getLabel() );
+            }
+            else if( type.getSize() <= 32 )
+            {
+                c.getVal2Reg()[&value ]
+                    = c.getCompiler().newU32( value.getLabel() );
+            }
+            else if( type.getSize() <= 64 )
+            {
+                c.getVal2Reg()[&value ]
+                    = c.getCompiler().newU64( value.getLabel() );
+            }
+            else
+            {
+                assert( not " a bit type of bit-size greater than 64-bit is unsupported for now! " );
+            }
+            break;
+        }
+        case Type::VECTOR: // fall-through
+        case Type::STRUCTURE:
+        {
+            c.getVal2Reg()[&value ]
+                = c.getCompiler().newUIntPtr( value.getLabel() );
+            break;
+        }
+        case Type::STRING:
+        case Type::INTERCONNECT:
+        case Type::VOID:
+        case Type::LABEL:
+        case Type::RELATION:
+        case Type::_BOTTOM_:
+        case Type::_TOP_:
+        {
+            libstdhl::Log::error(
+                "unsupported type '%s' to allocate a register!",
+                type.getDescription() );
+            assert( 0 );
+            break;
+        }
+    }
+
+    if( libcsel_ir::isa< libcsel_ir::Reference >( value ) )
+    {
+        CselIRToAsmJitPass::Context::Callable& func = c.getCallable();
+
+        c.getCompiler().setArg(
+            func.getArgSize( 1 ) - 1, c.getVal2Reg()[&value ] );
+    }
+
+    libstdhl::Log::info( "alloc '%p' for '%s' of type '%s'",
+        &c.getVal2Reg()[&value ],
+        value.getLabel(),
+        value.getType()->getName() );
+
+    return c.getVal2Reg()[&value ];
+}
+
+static asmjit::X86Mem* alloc_ptr_for_value(
+    Value& value, CselIRToAsmJitPass::Context& c )
+{
+    assert( value.getType() );
+    Type& type = *value.getType();
+    return 0;
+}
 
 //
 // Module
@@ -82,29 +179,55 @@ void CselIRToAsmJitPass::visit_epilog( Function& value, void* cxt )
 void CselIRToAsmJitPass::visit_prolog( Intrinsic& value, void* cxt )
 {
     TRACE( "" );
-    Context* c = (Context*)cxt;
-    FuncSignatureX& fsx = c->getFuncSignature();
-    fsx.reset();
-    fsx.setCallConv( CallConv::kIdHost );
-    fsx.setRet( TypeId::kVoid );
+    Context& c = static_cast< Context& >( *( (Context*)cxt ) );
+
+    CselIRToAsmJitPass::Context::Callable& func = c.getCallable( &value );
+    func.getArgSize( -1 );
+
+    FuncSignatureX& fsig = c.getFuncSignature();
+    fsig.init( CallConv::kIdHost, TypeId::kVoid, fsig._builderArgList, 0 );
 }
 void CselIRToAsmJitPass::visit_interlog( Intrinsic& value, void* cxt )
 {
     TRACE( "" );
-    Context* c = (Context*)cxt;
-    c->getCompiler().addFunc( c->getFuncSignature() );
+    Context& c = static_cast< Context& >( *( (Context*)cxt ) );
+    Context::Callable& func = c.getCallable();
+
+    c.getCompiler().addFunc( c.getFuncSignature() );
+
+    for( auto param : value.getInParameters() )
+    {
+        assert( isa< Reference >( param ) );
+        alloc_reg_for_value( *param, c );
+    }
+
+    for( auto param : value.getOutParameters() )
+    {
+        assert( isa< Reference >( param ) );
+        alloc_reg_for_value( *param, c );
+    }
+
+    for( auto param : value.getLinkage() )
+    {
+        assert( param and 0 );
+    }
+
+    assert( c.getFuncSignature().getArgCount() == func.getArgSize() );
 }
 void CselIRToAsmJitPass::visit_epilog( Intrinsic& value, void* cxt )
 {
     TRACE( "" );
-    Context* c = (Context*)cxt;
-    c->getCompiler().endFunc();
-    c->getCompiler().finalize();
+    Context& c = static_cast< Context& >( *( (Context*)cxt ) );
+
+    c.getCompiler().endFunc();
+    c.getCompiler().finalize();
 
     void** fn;
-    Error err = c->getRunTime().add( &fn, &c->getCodeHolder() );
-
+    Error err = c.getRunTime().add( &fn, &c.getCodeHolder() );
     assert( not err );
+
+    Context::Callable& func = c.getCallable();
+    func.getPtr( fn );
 }
 
 //
@@ -114,10 +237,12 @@ void CselIRToAsmJitPass::visit_epilog( Intrinsic& value, void* cxt )
 void CselIRToAsmJitPass::visit_prolog( Reference& value, void* cxt )
 {
     TRACE( "" );
+    Context& c = static_cast< Context& >( *( (Context*)cxt ) );
+    FuncSignatureX& fsig = c.getFuncSignature();
+    fsig.addArg( TypeId::kUIntPtr );
 }
 void CselIRToAsmJitPass::visit_epilog( Reference& value, void* cxt )
 {
-    TRACE( "" );
 }
 
 //
@@ -169,7 +294,6 @@ void CselIRToAsmJitPass::visit_prolog( ParallelScope& value, void* cxt )
 }
 void CselIRToAsmJitPass::visit_epilog( ParallelScope& value, void* cxt )
 {
-    TRACE( "" );
 }
 
 //
@@ -182,7 +306,6 @@ void CselIRToAsmJitPass::visit_prolog( SequentialScope& value, void* cxt )
 }
 void CselIRToAsmJitPass::visit_epilog( SequentialScope& value, void* cxt )
 {
-    TRACE( "" );
 }
 
 //
@@ -195,7 +318,6 @@ void CselIRToAsmJitPass::visit_prolog( TrivialStatement& value, void* cxt )
 }
 void CselIRToAsmJitPass::visit_epilog( TrivialStatement& value, void* cxt )
 {
-    TRACE( "" );
 }
 
 //
@@ -242,7 +364,6 @@ void CselIRToAsmJitPass::visit_prolog( CallInstruction& value, void* cxt )
 }
 void CselIRToAsmJitPass::visit_epilog( CallInstruction& value, void* cxt )
 {
-    TRACE( "" );
 }
 
 //
@@ -255,7 +376,6 @@ void CselIRToAsmJitPass::visit_prolog( IdCallInstruction& value, void* cxt )
 }
 void CselIRToAsmJitPass::visit_epilog( IdCallInstruction& value, void* cxt )
 {
-    TRACE( "" );
 }
 
 //
@@ -268,7 +388,6 @@ void CselIRToAsmJitPass::visit_prolog( StreamInstruction& value, void* cxt )
 }
 void CselIRToAsmJitPass::visit_epilog( StreamInstruction& value, void* cxt )
 {
-    TRACE( "" );
 }
 
 //
@@ -281,7 +400,6 @@ void CselIRToAsmJitPass::visit_prolog( NopInstruction& value, void* cxt )
 }
 void CselIRToAsmJitPass::visit_epilog( NopInstruction& value, void* cxt )
 {
-    TRACE( "" );
 }
 
 //
@@ -294,7 +412,6 @@ void CselIRToAsmJitPass::visit_prolog( AllocInstruction& value, void* cxt )
 }
 void CselIRToAsmJitPass::visit_epilog( AllocInstruction& value, void* cxt )
 {
-    TRACE( "" );
 }
 
 //
@@ -307,7 +424,6 @@ void CselIRToAsmJitPass::visit_prolog( IdInstruction& value, void* cxt )
 }
 void CselIRToAsmJitPass::visit_epilog( IdInstruction& value, void* cxt )
 {
-    TRACE( "" );
 }
 
 //
@@ -320,7 +436,6 @@ void CselIRToAsmJitPass::visit_prolog( CastInstruction& value, void* cxt )
 }
 void CselIRToAsmJitPass::visit_epilog( CastInstruction& value, void* cxt )
 {
-    TRACE( "" );
 }
 
 //
@@ -330,10 +445,40 @@ void CselIRToAsmJitPass::visit_epilog( CastInstruction& value, void* cxt )
 void CselIRToAsmJitPass::visit_prolog( ExtractInstruction& value, void* cxt )
 {
     TRACE( "" );
+    Context& c = static_cast< Context& >( *( (Context*)cxt ) );
+
+    Value* base = value.getValue( 0 );
+    Value* offset = value.getValue( 1 );
+
+    if( isa< Reference >( base ) and base->getType()->isStructure() )
+    {
+        assert( isa< BitConstant >( offset ) );
+        BitConstant& index = static_cast< BitConstant& >( *offset );
+
+        assert( index.getValue() < base->getType()->getResults().size() );
+
+        u32 byte_offset = 0;
+        u32 byte_size = 0;
+        for( u32 i = 0; i < index.getValue(); i++ )
+        {
+            byte_size = base->getType()->getResults()[ i ]->getSize() / 8;
+            byte_size = ( byte_size % 2 == 0 ) ? byte_size : byte_size + 1;
+            byte_offset += byte_size;
+        }
+        libstdhl::Log::info( "byte size = %lu, %lu", byte_size, byte_offset );
+
+        c.getVal2Mem()[&value ]
+            = x86::ptr( c.getVal2Reg()[ base ], byte_offset );
+    }
+    else
+    {
+        assert( 0 );
+    }
+
+    alloc_ptr_for_value( value, c );
 }
 void CselIRToAsmJitPass::visit_epilog( ExtractInstruction& value, void* cxt )
 {
-    TRACE( "" );
 }
 
 //
@@ -343,10 +488,23 @@ void CselIRToAsmJitPass::visit_epilog( ExtractInstruction& value, void* cxt )
 void CselIRToAsmJitPass::visit_prolog( LoadInstruction& value, void* cxt )
 {
     TRACE( "" );
+    Context& c = static_cast< Context& >( *( (Context*)cxt ) );
+
+    alloc_reg_for_value( value, c );
+
+    Value* src = value.getValue( 0 );
+
+    if( isa< ExtractInstruction >( src ) )
+    {
+        c.getCompiler().mov( c.getVal2Reg()[&value ], c.getVal2Mem()[ src ] );
+    }
+    else
+    {
+        assert( 0 );
+    }
 }
 void CselIRToAsmJitPass::visit_epilog( LoadInstruction& value, void* cxt )
 {
-    TRACE( "" );
 }
 
 //
@@ -359,7 +517,6 @@ void CselIRToAsmJitPass::visit_prolog( StoreInstruction& value, void* cxt )
 }
 void CselIRToAsmJitPass::visit_epilog( StoreInstruction& value, void* cxt )
 {
-    TRACE( "" );
 }
 
 //
@@ -372,7 +529,6 @@ void CselIRToAsmJitPass::visit_prolog( NotInstruction& value, void* cxt )
 }
 void CselIRToAsmJitPass::visit_epilog( NotInstruction& value, void* cxt )
 {
-    TRACE( "" );
 }
 
 //
@@ -385,7 +541,6 @@ void CselIRToAsmJitPass::visit_prolog( AndInstruction& value, void* cxt )
 }
 void CselIRToAsmJitPass::visit_epilog( AndInstruction& value, void* cxt )
 {
-    TRACE( "" );
 }
 
 //
@@ -398,7 +553,6 @@ void CselIRToAsmJitPass::visit_prolog( OrInstruction& value, void* cxt )
 }
 void CselIRToAsmJitPass::visit_epilog( OrInstruction& value, void* cxt )
 {
-    TRACE( "" );
 }
 
 //
@@ -411,7 +565,6 @@ void CselIRToAsmJitPass::visit_prolog( XorInstruction& value, void* cxt )
 }
 void CselIRToAsmJitPass::visit_epilog( XorInstruction& value, void* cxt )
 {
-    TRACE( "" );
 }
 
 //
@@ -436,7 +589,6 @@ void CselIRToAsmJitPass::visit_prolog( DivSignedInstruction& value, void* cxt )
 }
 void CselIRToAsmJitPass::visit_epilog( DivSignedInstruction& value, void* cxt )
 {
-    TRACE( "" );
 }
 
 //
@@ -451,7 +603,6 @@ void CselIRToAsmJitPass::visit_prolog(
 void CselIRToAsmJitPass::visit_epilog(
     ModUnsignedInstruction& value, void* cxt )
 {
-    TRACE( "" );
 }
 
 //
@@ -466,7 +617,6 @@ void CselIRToAsmJitPass::visit_prolog(
 void CselIRToAsmJitPass::visit_epilog(
     EquUnsignedInstruction& value, void* cxt )
 {
-    TRACE( "" );
 }
 
 //
@@ -481,7 +631,6 @@ void CselIRToAsmJitPass::visit_prolog(
 void CselIRToAsmJitPass::visit_epilog(
     NeqUnsignedInstruction& value, void* cxt )
 {
-    TRACE( "" );
 }
 
 //
@@ -494,7 +643,6 @@ void CselIRToAsmJitPass::visit_prolog( ZeroExtendInstruction& value, void* cxt )
 }
 void CselIRToAsmJitPass::visit_epilog( ZeroExtendInstruction& value, void* cxt )
 {
-    TRACE( "" );
 }
 
 //
@@ -507,7 +655,6 @@ void CselIRToAsmJitPass::visit_prolog( TruncationInstruction& value, void* cxt )
 }
 void CselIRToAsmJitPass::visit_epilog( TruncationInstruction& value, void* cxt )
 {
-    TRACE( "" );
 }
 
 //
@@ -520,7 +667,6 @@ void CselIRToAsmJitPass::visit_prolog( BitConstant& value, void* cxt )
 }
 void CselIRToAsmJitPass::visit_epilog( BitConstant& value, void* cxt )
 {
-    TRACE( "" );
 }
 
 //

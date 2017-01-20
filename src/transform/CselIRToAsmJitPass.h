@@ -43,24 +43,77 @@ namespace libcsel_rt
 
         class Context
         {
+          public:
+            class Callable
+            {
+              private:
+                void** func_ptr;
+                u32 arg_size;
+
+              public:
+                Callable()
+                : func_ptr( nullptr )
+                , arg_size( 0 ){};
+
+                void** getPtr( void** set = nullptr )
+                {
+                    if( set )
+                    {
+                        func_ptr = set;
+                    }
+                    return func_ptr;
+                }
+
+                u32 getArgSize( i8 increment = 0 )
+                {
+                    if( increment > 0 )
+                    {
+                        arg_size++;
+                    }
+                    else if( increment < 0 )
+                    {
+                        arg_size = 0;
+                    }
+                    return arg_size;
+                }
+            };
+
           private:
             asmjit::JitRuntime runtime;
             asmjit::CodeHolder codeholder;
             asmjit::X86Compiler compiler;
-            asmjit::FuncSignatureX fsx;
 
-            std::unordered_map< libcsel_ir::Value*, void** > cache;
+            asmjit::FuncSignatureX fsig;
+
+            Callable* callable_last_accessed;
+
+            std::unordered_map< libcsel_ir::Value*, Callable > callables;
+
+            std::unordered_map< libcsel_ir::Value*, asmjit::X86Gp > val2reg;
+            std::unordered_map< libcsel_ir::Value*, asmjit::X86Mem > val2mem;
 
           public:
             Context( void )
             : runtime()
             , codeholder()
             , compiler()
-            , fsx()
+            , fsig()
+            , callable_last_accessed( 0 )
             {
                 codeholder.init( runtime.getCodeInfo() );
                 codeholder.attach( &compiler );
             };
+
+            Callable& getCallable( libcsel_ir::Value* value = nullptr )
+            {
+                if( value )
+                {
+                    callable_last_accessed
+                        = &callables.emplace( value, Callable() ).first->second;
+                }
+
+                return *callable_last_accessed;
+            }
 
             asmjit::JitRuntime& getRunTime( void )
             {
@@ -79,7 +132,19 @@ namespace libcsel_rt
 
             asmjit::FuncSignatureX& getFuncSignature( void )
             {
-                return fsx;
+                return fsig;
+            }
+
+            std::unordered_map< libcsel_ir::Value*, asmjit::X86Gp >& getVal2Reg(
+                void )
+            {
+                return val2reg;
+            }
+
+            std::unordered_map< libcsel_ir::Value*, asmjit::X86Mem >&
+            getVal2Mem( void )
+            {
+                return val2mem;
             }
         };
     };

@@ -123,8 +123,6 @@ TEST( libcsel_rt__asmjit, compiler )
 
 TEST( libcsel_rt__asmjit, compiler2 )
 {
-    // typedef u8 ( *Func )( u64 );
-
     JitRuntime rt;
     CodeHolder code;
     code.init( rt.getCodeInfo() );
@@ -133,7 +131,6 @@ TEST( libcsel_rt__asmjit, compiler2 )
 
     FuncSignatureX fsx;
     fsx.setCallConv( CallConv::kIdHost );
-    // fsx.setRet( TypeId::kU8 );
     fsx.addArg( TypeId::kUIntPtr );
     fsx.addArg( TypeId::kUIntPtr );
     fsx.addArg( TypeId::kUIntPtr );
@@ -201,6 +198,172 @@ TEST( libcsel_rt__asmjit, compiler2 )
     EXPECT_EQ( (int)idc, 0 );
     EXPECT_EQ( (int)bvc, 1 );
     EXPECT_EQ( (int)bdc, 0 );
+
+    rt.release( fn );
+}
+
+TEST( libcsel_rt__asmjit, compiler3 )
+{
+    JitRuntime rt;
+    CodeHolder code;
+    code.init( rt.getCodeInfo() );
+
+    X86Compiler cc( &code );
+
+    FuncSignatureX fsx;
+    fsx.setCallConv( CallConv::kIdHost );
+    fsx.addArg( TypeId::kUIntPtr );
+    fsx.addArg( TypeId::kUIntPtr );
+    cc.addFunc( fsx );
+
+    // in
+    X86Gp ip = cc.newUIntPtr( "ip" );
+    cc.setArg( 0, ip );
+
+    // out
+    X86Gp bp = cc.newUIntPtr( "bp" );
+    cc.setArg( 1, bp );
+
+    X86Gp iv = cc.newU64( "iv" );
+    X86Gp id = cc.newU8( "id" );
+
+    cc.mov( iv, x86::ptr64( ip, 0 ) );
+    cc.mov( id, x86::ptr8( ip, 8 ) );
+
+    cc.add( iv, 1 );
+    cc.sub( id, 1 );
+
+    cc.mov( x86::ptr8( bp, 0 ), iv.r8() );
+    cc.mov( x86::ptr8( bp, 1 ), id );
+
+    cc.endFunc();
+    cc.finalize();
+
+    void** fn;
+    Error err = rt.add( &fn, &code );
+
+    ASSERT_EQ( err, 0 );
+
+    typedef void ( *FP )( void*, void* );
+
+    struct I
+    {
+        u64 v;
+        u8 d;
+    };
+
+    struct B
+    {
+        u8 v;
+        u8 d;
+    };
+
+    {
+        I i{ 44, 22 };
+        B b{ 1, 0 };
+
+        ( (FP)fn )( &i, &b );
+
+        EXPECT_EQ( (int)i.v, 44 );
+        EXPECT_EQ( (int)i.d, 22 );
+        EXPECT_EQ( (int)b.v, 45 );
+        EXPECT_EQ( (int)b.d, 21 );
+    }
+
+    {
+        I i{ 25, 1 };
+        B b{ 255, 255 };
+
+        ( (FP)fn )( &i, &b );
+
+        EXPECT_EQ( (int)i.v, 25 );
+        EXPECT_EQ( (int)i.d, 1 );
+        EXPECT_EQ( (int)b.v, 26 );
+        EXPECT_EQ( (int)b.d, 0 );
+    }
+
+    rt.release( fn );
+}
+
+TEST( libcsel_rt__asmjit, compiler4 )
+{
+    JitRuntime rt;
+    CodeHolder code;
+    code.init( rt.getCodeInfo() );
+
+    X86Compiler cc( &code );
+
+    FuncSignatureX fsx;
+    fsx.setCallConv( CallConv::kIdHost );
+    fsx.addArg( TypeId::kUIntPtr );
+    fsx.addArg( TypeId::kUIntPtr );
+    cc.addFunc( fsx );
+
+    // in
+    X86Gp ip = cc.newUIntPtr( "ip" );
+    cc.setArg( 0, ip );
+
+    // out
+    X86Gp bp = cc.newUIntPtr( "bp" );
+    cc.setArg( 1, bp );
+
+    X86Gp iv = cc.newU64( "iv" );
+    X86Gp id = cc.newU8( "id" );
+
+    cc.mov( id, x86::ptr( ip, 0 ) );
+    cc.mov( iv, x86::ptr( ip, 8 ) );
+
+    cc.add( id, 1 );
+    cc.sub( iv, 1 );
+
+    cc.mov( x86::ptr( bp, 0 ), id );
+    cc.mov( x86::ptr( bp, 1 ), iv.r8() );
+
+    cc.endFunc();
+    cc.finalize();
+
+    void** fn;
+    Error err = rt.add( &fn, &code );
+
+    ASSERT_EQ( err, 0 );
+
+    typedef void ( *FP )( void*, void* );
+
+    struct I
+    {
+        u64 v;
+        u8 d;
+    };
+
+    struct B
+    {
+        u8 v;
+        u8 d;
+    };
+
+    {
+        I i{ 44, 22 };
+        B b{ 1, 0 };
+
+        ( (FP)fn )( &i, &b );
+
+        EXPECT_EQ( (int)i.v, 44 );
+        EXPECT_EQ( (int)i.d, 22 );
+        EXPECT_EQ( (int)b.v, 45 );
+        EXPECT_EQ( (int)b.d, 21 );
+    }
+
+    {
+        I i{ 25, 1 };
+        B b{ 255, 255 };
+
+        ( (FP)fn )( &i, &b );
+
+        EXPECT_EQ( (int)i.v, 25 );
+        EXPECT_EQ( (int)i.d, 1 );
+        EXPECT_EQ( (int)b.v, 26 );
+        EXPECT_EQ( (int)b.d, 0 );
+    }
 
     rt.release( fn );
 }
