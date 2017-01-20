@@ -147,6 +147,9 @@ namespace libcsel_rt
                 return val2mem;
             }
         };
+
+      private:
+        void alloc_reg_for_value( libcsel_ir::Value& value, Context& c );
     };
 }
 

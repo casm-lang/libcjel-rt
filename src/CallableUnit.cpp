@@ -57,11 +57,14 @@ void CallableUnit::compile( libcsel_ir::CallableUnit& value )
     };
 
     I i{ 44, 22 };
-    B b{ 1, 0 };
+    B b{ 200, 100 };
+
+    libstdhl::Log::info( "%s: %p:  pre: %lu, %u --> %u, %u", __FUNCTION__,
+        c.getCallable( &value ).getPtr(), i.v, i.d, b.v, b.d );
 
     ( (CallableType)c.getCallable( &value ).getPtr() )( &i, &b );
 
-    libstdhl::Log::info( "%s: %p: %lu, %u --> %u, %u", __FUNCTION__,
+    libstdhl::Log::info( "%s: %p: post: %lu, %u --> %u, %u", __FUNCTION__,
         c.getCallable( &value ).getPtr(), i.v, i.d, b.v, b.d );
 }
 
