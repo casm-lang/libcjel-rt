@@ -37,10 +37,8 @@ using namespace libcsel_rt;
 void CallableUnit::compile( libcsel_ir::CallableUnit& value )
 {
     libcsel_rt::CselIRToAsmJitPass x;
-
     libcsel_rt::CselIRToAsmJitPass::Context c;
-
-    value.iterate( libcsel_ir::Traversal::PREORDER, &x, (void*)( &c ) );
+    value.iterate( libcsel_ir::Traversal::PREORDER, &x, &c );
 
     typedef void ( *CallableType )( void*, void* );
 

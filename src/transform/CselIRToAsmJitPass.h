@@ -32,16 +32,17 @@
 
 namespace libcsel_rt
 {
-    class CselIRToAsmJitPass : public libpass::Pass, public libcsel_ir::Visitor
+    class CselIRToAsmJitPass final : public libpass::Pass,
+                                     public libcsel_ir::Visitor
     {
       public:
         static char id;
 
-        bool run( libpass::PassResult& pr ) override final;
+        bool run( libpass::PassResult& pr ) override;
 
         LIB_CSELIR_VISITOR_INTERFACE;
 
-        class Context
+        class Context : public libcsel_ir::Context
         {
           public:
             class Callable
