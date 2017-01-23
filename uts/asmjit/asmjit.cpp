@@ -368,6 +368,142 @@ TEST( libcsel_rt__asmjit, compiler4 )
     rt.release( fn );
 }
 
+TEST( libcsel_rt__asmjit, compiler5 )
+{
+    JitRuntime rt;
+
+    FuncSignatureX callee_fs;
+    void** callee = nullptr;
+
+    FuncSignatureX caller_fs;
+    void** caller = nullptr;
+    {
+        // callee context!
+        CodeHolder code;
+        code.init( rt.getCodeInfo() );
+        X86Compiler cc( &code );
+
+        callee_fs.setCallConv( CallConv::kIdHost );
+        callee_fs.addArg( TypeId::kUIntPtr );
+        callee_fs.addArg( TypeId::kUIntPtr );
+        cc.addFunc( callee_fs );
+
+        // in
+        X86Gp ip = cc.newUIntPtr( "ip" );
+        cc.setArg( 0, ip );
+
+        // out
+        X86Gp bp = cc.newUIntPtr( "bp" );
+        cc.setArg( 1, bp );
+
+        X86Gp iv = cc.newU64( "iv" );
+        X86Gp id = cc.newU8( "id" );
+
+        cc.mov( id, x86::ptr( ip, 0 ) );
+        cc.mov( iv, x86::ptr( ip, 8 ) );
+
+        cc.add( id, 1 );
+        cc.sub( iv, 1 );
+
+        cc.mov( x86::ptr( bp, 0 ), id );
+        cc.mov( x86::ptr( bp, 1 ), iv.r8() );
+
+        cc.endFunc();
+        cc.finalize();
+
+        // typedef void ( *callee_fp )( void*, void* );
+
+        Error err = rt.add( &callee, &code );
+        ASSERT_EQ( err, 0 );
+    }
+
+    {
+        // caller context!
+        CodeHolder code;
+        code.init( rt.getCodeInfo() );
+        X86Compiler cc( &code );
+
+        caller_fs.setCallConv( CallConv::kIdHost );
+        caller_fs.addArg( TypeId::kUIntPtr );
+        caller_fs.addArg( TypeId::kUIntPtr );
+        cc.addFunc( caller_fs );
+
+        // out
+        X86Gp ip = cc.newUIntPtr( "ip" );
+        cc.setArg( 0, ip );
+        X86Gp bp = cc.newUIntPtr( "bp" );
+        cc.setArg( 1, bp );
+
+        // internal mem
+        X86Mem a = cc.newStack( 9, 4 ); // { u64, u8 }
+        X86Gp ap = cc.newUIntPtr( "a" );
+        cc.lea( ap, a );
+
+        X86Gp tmp = cc.newU8( "tmp" );
+        cc.mov( tmp, x86::ptr( ip, 0 ) );
+        cc.mov( x86::ptr( ap, 0 ), tmp );
+        cc.mov( tmp, x86::ptr( ip, 8 ) );
+        cc.mov( x86::ptr( ap, 8 ), tmp );
+
+        X86Mem r = cc.newStack( 2, 4 ); // { u8, u8 }
+        X86Gp rp = cc.newUIntPtr( "r" );
+        cc.lea( rp, r );
+
+        // perform call!
+        X86Gp fp = cc.newIntPtr( "fp" );
+        cc.mov( fp, imm_ptr( callee ) );
+        CCFuncCall* call = cc.call( fp, callee_fs );
+        call->setArg( 0, ap );
+        call->setArg( 1, rp );
+
+        // write to outputs for debug and testing!!!
+        cc.mov( tmp, x86::ptr( ap, 0 ) );
+        cc.mov( x86::ptr( ip, 0 ), tmp );
+        cc.mov( tmp, x86::ptr( ap, 8 ) );
+        cc.mov( x86::ptr( ip, 8 ), tmp );
+
+        cc.mov( tmp, x86::ptr( rp, 0 ) );
+        cc.mov( x86::ptr( bp, 0 ), tmp );
+        cc.mov( tmp, x86::ptr( rp, 1 ) );
+        cc.mov( x86::ptr( bp, 1 ), tmp );
+
+        cc.endFunc();
+        cc.finalize();
+
+        // typedef void ( *caller_fp )( void );
+        typedef void ( *caller_fp )( void*, void* );
+
+        void** caller;
+        Error err = rt.add( &caller, &code );
+        ASSERT_EQ( err, 0 );
+
+        struct I
+        {
+            u64 v;
+            u8 d;
+        };
+
+        struct B
+        {
+            u8 v;
+            u8 d;
+        };
+
+        I sa = { 11, 22 };
+        B sr = { 255, 255 };
+
+        ( (caller_fp)caller )( &sa, &sr );
+
+        EXPECT_EQ( (int)sa.v, 11 );
+        EXPECT_EQ( (int)sa.d, 22 );
+        EXPECT_EQ( (int)sr.v, 12 );
+        EXPECT_EQ( (int)sr.d, 21 );
+    }
+
+    rt.release( callee );
+    rt.release( caller );
+}
+
 //
 //  Local variables:
 //  mode: c++
