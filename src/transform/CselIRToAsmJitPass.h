@@ -89,6 +89,8 @@ namespace libcsel_rt
           private:
             asmjit::JitRuntime runtime;
             asmjit::CodeHolder codeholder;
+            asmjit::StringLogger logger;
+
             asmjit::X86Compiler compiler;
 
             Callable* callable_last_accessed;
@@ -107,6 +109,10 @@ namespace libcsel_rt
             {
                 codeholder.init( runtime.getCodeInfo() );
                 codeholder.attach( &compiler );
+
+                logger.addOptions( asmjit::Logger::kOptionBinaryForm );
+                logger.clearString();
+                codeholder.setLogger( &logger );
             };
 
             u1 hasCallable( libcsel_ir::Value& value )
@@ -133,6 +139,11 @@ namespace libcsel_rt
             asmjit::CodeHolder& getCodeHolder( void )
             {
                 return codeholder;
+            }
+
+            asmjit::StringLogger& getLogger( void )
+            {
+                return logger;
             }
 
             asmjit::X86Compiler& getCompiler( void )
