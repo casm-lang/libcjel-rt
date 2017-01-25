@@ -45,9 +45,10 @@ bool CselIRToAsmJitPass::run( libpass::PassResult& pr )
 
 #if 0
 #define TRACE( FMT, ARGS... )                                                  \
-    libstdhl::Log::info( "%s:%i: %p: %s | %s | '%s' | size=%lu | @ %p" FMT,    \
-        __FUNCTION__, __LINE__, &value, value.getName(), value.getLabel(),     \
-        value.getType()->getName(), value.getType()->getSize(), cxt, ##ARGS )
+    libstdhl::Log::info(                                                       \
+        "Asmjit:%i: %p: %s | %s | '%s' | size=%lu | @ %p" FMT, __LINE__,       \
+        &value, value.getName(), value.getLabel(), value.getType()->getName(), \
+        value.getType()->getSize(), cxt, ##ARGS )
 #else
 #define TRACE( FMT, ARGS... )
 #endif
@@ -62,6 +63,59 @@ bool CselIRToAsmJitPass::run( libpass::PassResult& pr )
             "%s:%i: FIXME: unimplemented", __FUNCTION__, __LINE__ );           \
         assert( 0 );                                                           \
     }
+
+static u32 calc_byte_size( libcsel_ir::Type& type )
+{
+    switch( type.getID() )
+    {
+        case Type::BIT:
+        {
+            if( type.getSize() < 1 )
+            {
+                assert( not" bit type has invalid bit-size of '0' " );
+            }
+            else if( type.getSize() <= 8 )
+            {
+                return 1;
+            }
+            else if( type.getSize() <= 16 )
+            {
+                return 2;
+            }
+            else if( type.getSize() <= 32 )
+            {
+                return 4;
+            }
+            else if( type.getSize() <= 64 )
+            {
+                return 8;
+            }
+            else
+            {
+                assert( not " a bit type of bit-size greater than 64-bit is unsupported for now! " );
+            }
+            break;
+        }
+        case Type::VECTOR: // fall-through
+        case Type::STRUCTURE:
+        {
+            u32 byte_size = 0;
+            for( auto t : type.getResults() )
+            {
+                byte_size += calc_byte_size( *t );
+            }
+            return byte_size;
+        }
+        default:
+        {
+            libstdhl::Log::error(
+                "unsupported type '%s' to calculate byte_size!",
+                type.getDescription() );
+            assert( 0 );
+            return 0;
+        }
+    }
+}
 
 void CselIRToAsmJitPass::alloc_reg_for_value( Value& value, Context& c )
 {
@@ -132,7 +186,7 @@ void CselIRToAsmJitPass::alloc_reg_for_value( Value& value, Context& c )
 
     if( isa< Reference >( value ) )
     {
-        CselIRToAsmJitPass::Context::Callable& func = c.getCallable();
+        Context::Callable& func = c.getCallable();
 
         c.getCompiler().setArg(
             func.getArgSize( 1 ) - 1, c.getVal2Reg()[&value ] );
@@ -154,6 +208,12 @@ void CselIRToAsmJitPass::alloc_reg_for_value( Value& value, Context& c )
                     static_cast< libcsel_ir::Context& >( c ) );
                 break;
             }
+            case Value::STRUCTURE_CONSTANT:
+            {
+                visit_prolog( static_cast< StructureConstant& >( value ),
+                    static_cast< libcsel_ir::Context& >( c ) );
+                break;
+            }
             default:
             {
                 libstdhl::Log::error(
@@ -164,6 +224,15 @@ void CselIRToAsmJitPass::alloc_reg_for_value( Value& value, Context& c )
                 break;
             }
         }
+    }
+
+    if( isa< AllocInstruction >( value ) )
+    {
+        u32 byte_size = calc_byte_size( type );
+
+        c.getCompiler().lea(
+            c.getVal2Reg()[&value ], c.getCompiler().newStack( byte_size, 4 ) );
+        VERBOSE( "lea %s, newStack( %u, 4 )", value.getLabel(), byte_size );
     }
 }
 
@@ -207,10 +276,10 @@ void CselIRToAsmJitPass::visit_prolog(
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
 
-    CselIRToAsmJitPass::Context::Callable& func = c.getCallable( &value );
+    Context::Callable& func = c.getCallable( &value );
     func.getArgSize( -1 );
 
-    FuncSignatureX& fsig = c.getFuncSignature();
+    FuncSignatureX& fsig = func.getSig();
     fsig.init( CallConv::kIdHost, TypeId::kVoid, fsig._builderArgList, 0 );
 }
 void CselIRToAsmJitPass::visit_interlog(
@@ -220,7 +289,8 @@ void CselIRToAsmJitPass::visit_interlog(
     Context& c = static_cast< Context& >( cxt );
     Context::Callable& func = c.getCallable();
 
-    c.getCompiler().addFunc( c.getFuncSignature() );
+    c.getCompiler().addFunc( func.getSig() );
+    VERBOSE( "addFunc( %s )", value.getLabel() );
 
     for( auto param : value.getInParameters() )
     {
@@ -239,7 +309,7 @@ void CselIRToAsmJitPass::visit_interlog(
         assert( param and 0 );
     }
 
-    assert( c.getFuncSignature().getArgCount() == func.getArgSize() );
+    assert( func.getSig().getArgCount() == func.getArgSize() );
 }
 void CselIRToAsmJitPass::visit_epilog(
     Intrinsic& value, libcsel_ir::Context& cxt )
@@ -267,7 +337,8 @@ void CselIRToAsmJitPass::visit_prolog(
 {
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
-    FuncSignatureX& fsig = c.getFuncSignature();
+    Context::Callable& func = c.getCallable();
+    FuncSignatureX& fsig = func.getSig();
     fsig.addArg( TypeId::kUIntPtr );
 }
 void CselIRToAsmJitPass::visit_epilog(
@@ -413,7 +484,32 @@ void CselIRToAsmJitPass::visit_prolog(
     CallInstruction& value, libcsel_ir::Context& cxt )
 {
     TRACE( "" );
-    FIXME();
+    Context& c = static_cast< Context& >( cxt );
+
+    assert( c.hasCallable( value.getCallee() ) );
+    Context::Callable& callee = c.getCallable( &value.getCallee() );
+
+    for( auto v : value.getValues() )
+    {
+        if( v == &value.getCallee() )
+        {
+            continue;
+        }
+
+        alloc_reg_for_value( *v, c );
+    }
+
+    CCFuncCall* call
+        = c.getCompiler().call( imm_ptr( callee.getPtr() ), callee.getSig() );
+    VERBOSE( "call( %s )", value.getCallee().getLabel() );
+
+    u32 i = 0;
+    for( i = 1; i < value.getValues().size(); i++ )
+    {
+        call->setArg( ( i - 1 ), c.getVal2Reg()[ value.getValues()[ i ] ] );
+        VERBOSE(
+            "setArg( %u, %s )", i - 1, value.getValues()[ i ]->getLabel() );
+    }
 }
 void CselIRToAsmJitPass::visit_epilog(
     CallInstruction& value, libcsel_ir::Context& cxt )
@@ -551,8 +647,6 @@ void CselIRToAsmJitPass::visit_prolog(
     {
         assert( 0 );
     }
-
-    // alloc_ptr_for_value( value, c );
 }
 void CselIRToAsmJitPass::visit_epilog(
     ExtractInstruction& value, libcsel_ir::Context& cxt )
@@ -910,12 +1004,36 @@ void CselIRToAsmJitPass::visit_prolog(
     StructureConstant& value, libcsel_ir::Context& cxt )
 {
     TRACE( "" );
-    FIXME();
+    Context& c = static_cast< Context& >( cxt );
+
+    alloc_reg_for_value( value, c );
+
+    u32 bit_size = value.getType()->getSize();
+    u32 byte_size = bit_size / 8 + ( ( bit_size % 8 ) % 2 );
+    byte_size = ( byte_size == 0 ? 1 : byte_size );
+
+    c.getCompiler().lea(
+        c.getVal2Reg()[&value ], c.getCompiler().newStack( byte_size, 4 ) );
+    VERBOSE( "lea %s, newStack( %u, 4 )", value.getLabel(), byte_size );
+
+    u32 byte_offset = 0;
+    for( auto v : value.getValue() )
+    {
+        alloc_reg_for_value( *v, c );
+
+        c.getCompiler().mov( x86::ptr( c.getVal2Reg()[&value ], byte_offset ),
+            c.getVal2Reg()[ v ] );
+        VERBOSE( "mov ptr( %s, %u), %s", value.getLabel(), byte_offset,
+            v->getLabel() );
+
+        bit_size = v->getType()->getSize();
+        byte_size = bit_size / 8 + ( ( bit_size % 8 ) % 2 );
+        byte_offset += byte_size;
+    }
 }
 void CselIRToAsmJitPass::visit_epilog(
     StructureConstant& value, libcsel_ir::Context& cxt )
 {
-    TRACE( "" );
 }
 
 //
@@ -948,6 +1066,41 @@ void CselIRToAsmJitPass::visit_epilog(
     Interconnect& value, libcsel_ir::Context& cxt )
 {
     TRACE( "" );
+}
+
+libcsel_ir::Value* CselIRToAsmJitPass::execute(
+    libcsel_ir::CallInstruction& value )
+{
+    libcsel_rt::CselIRToAsmJitPass::Context c;
+
+    // create Builtin/Rule asm jit
+    value.getCallee().iterate( libcsel_ir::Traversal::PREORDER, this, &c );
+
+    Context::Callable& func = c.getCallable( &value );
+    func.getArgSize( -1 );
+
+    FuncSignatureX& fsig = func.getSig();
+    fsig.init( CallConv::kIdHost, TypeId::kVoid, fsig._builderArgList, 0 );
+
+    c.getCompiler().addFunc( func.getSig() );
+    VERBOSE( "addFunc( %s )", value.getLabel() );
+
+    // create CallInstruction asm jit
+    value.iterate( libcsel_ir::Traversal::PREORDER, this, &c );
+
+    c.getCompiler().endFunc();
+    c.getCompiler().finalize();
+
+    void** func_ptr;
+    Error err = c.getRunTime().add( &func_ptr, &c.getCodeHolder() );
+    assert( not err );
+    func.getPtr( func_ptr );
+
+    typedef void ( *CallableType )( void );
+    ( (CallableType)c.getCallable( &value ).getPtr() )();
+
+    return libcsel_ir::Constant::getStructureZero( *value.getType() );
+    // Bit( libcsel_ir::Type::getBit( 37 ), 37 );
 }
 
 //

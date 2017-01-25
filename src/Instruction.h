@@ -32,25 +32,22 @@
 
 #include "CselRT.h"
 
-#include "../csel-ir/src/Instruction.h"
+namespace libcsel_ir
+{
+    class Value;
+    class Instruction;
+}
 
 namespace libcsel_rt
 {
     class Instruction : public CselRT
     {
       public:
-        static inline void compile(
-            const libcsel_ir::AddSignedInstruction& value )
-        {
-            value;
-            return;
-        }
+        static libcsel_ir::Value* execute( libcsel_ir::Instruction& value );
     };
-
-    void test_asmjit( void );
 }
 
-#endif /* _LIB_CSELRT_INSTRUCTION_H_ */
+#endif // _LIB_CSELRT_INSTRUCTION_H_
 
 //
 //  Local variables:

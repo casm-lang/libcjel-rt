@@ -23,13 +23,30 @@
 
 #include "Instruction.h"
 
+#include "transform/CselIRToAsmJitPass.h"
+
+#include "../csel-ir/src/Instruction.h"
+#include "../csel-ir/src/Value.h"
+
 using namespace libcsel_rt;
 
-static void what( void )
+libcsel_ir::Value* Instruction::execute( libcsel_ir::Instruction& value )
 {
-    libcsel_ir::AddSignedInstruction a( 0, 0 );
+    libstdhl::Log::info( "%s", __FUNCTION__ );
 
-    Instruction::compile( a );
+    if( not libcsel_ir::isa< libcsel_ir::CallInstruction >( value ) )
+    {
+        libstdhl::Log::error( "%s:%i: unimplemented instruction to be executed",
+            __FILE__, __LINE__ );
+        assert( 0 );
+    }
+
+    libcsel_ir::CallInstruction& call
+        = static_cast< libcsel_ir::CallInstruction& >( value );
+
+    libcsel_rt::CselIRToAsmJitPass x;
+
+    return x.execute( call );
 }
 
 //

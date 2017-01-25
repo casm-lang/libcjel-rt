@@ -48,13 +48,20 @@ namespace libcsel_rt
             class Callable
             {
               private:
+                asmjit::FuncSignatureX func_sig;
                 void** func_ptr;
                 u32 arg_size;
 
               public:
                 Callable()
-                : func_ptr( nullptr )
+                : func_sig()
+                , func_ptr( nullptr )
                 , arg_size( 0 ){};
+
+                asmjit::FuncSignatureX& getSig( void )
+                {
+                    return func_sig;
+                }
 
                 void** getPtr( void** set = nullptr )
                 {
@@ -84,8 +91,6 @@ namespace libcsel_rt
             asmjit::CodeHolder codeholder;
             asmjit::X86Compiler compiler;
 
-            asmjit::FuncSignatureX fsig;
-
             Callable* callable_last_accessed;
 
             std::unordered_map< libcsel_ir::Value*, Callable > callables;
@@ -98,12 +103,16 @@ namespace libcsel_rt
             : runtime()
             , codeholder()
             , compiler()
-            , fsig()
             , callable_last_accessed( 0 )
             {
                 codeholder.init( runtime.getCodeInfo() );
                 codeholder.attach( &compiler );
             };
+
+            u1 hasCallable( libcsel_ir::Value& value )
+            {
+                return callables.find( &value ) != callables.end();
+            }
 
             Callable& getCallable( libcsel_ir::Value* value = nullptr )
             {
@@ -131,11 +140,6 @@ namespace libcsel_rt
                 return compiler;
             }
 
-            asmjit::FuncSignatureX& getFuncSignature( void )
-            {
-                return fsig;
-            }
-
             std::unordered_map< libcsel_ir::Value*, asmjit::X86Gp >& getVal2Reg(
                 void )
             {
@@ -151,6 +155,9 @@ namespace libcsel_rt
 
       private:
         void alloc_reg_for_value( libcsel_ir::Value& value, Context& c );
+
+      public:
+        libcsel_ir::Value* execute( libcsel_ir::CallInstruction& value );
     };
 }
 
