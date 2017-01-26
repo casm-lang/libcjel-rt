@@ -450,11 +450,11 @@ TEST( libcsel_rt__asmjit, compiler5 )
         X86Gp rp = cc.newUIntPtr( "r" );
         cc.lea( rp, r );
 
-        // // perform call!
-        // X86Gp fp = cc.newIntPtr( "fp" );
-        // cc.mov( fp, imm_ptr( callee ) );
-        // CCFuncCall* call = cc.call( fp, callee_fs );
-        CCFuncCall* call = cc.call( imm_ptr( callee ), callee_fs );
+        // perform call!
+        X86Gp fp = cc.newIntPtr( "fp" );
+        cc.mov( fp, imm_ptr( callee ) );
+        CCFuncCall* call = cc.call( fp, callee_fs );
+        // CCFuncCall* call = cc.call( imm_ptr( callee ), callee_fs );
         call->setArg( 0, ap );
         call->setArg( 1, rp );
 

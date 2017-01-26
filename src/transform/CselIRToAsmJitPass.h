@@ -107,13 +107,22 @@ namespace libcsel_rt
             , compiler()
             , callable_last_accessed( 0 )
             {
-                codeholder.init( runtime.getCodeInfo() );
-                codeholder.attach( &compiler );
+                reset();
 
                 logger.addOptions( asmjit::Logger::kOptionBinaryForm );
-                logger.clearString();
+            }
+
+            void reset( void )
+            {
+                compiler.onDetach( &codeholder );
+
+                codeholder.reset();
+                codeholder.init( runtime.getCodeInfo() );
+                codeholder.attach( &compiler );
                 codeholder.setLogger( &logger );
-            };
+
+                logger.clearString();
+            }
 
             u1 hasCallable( libcsel_ir::Value& value )
             {
