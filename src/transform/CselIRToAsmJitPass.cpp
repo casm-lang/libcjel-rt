@@ -1122,15 +1122,6 @@ libcsel_ir::Value* CselIRToAsmJitPass::execute(
     libcsel_ir::Value* res = value.getValues()[ 2 ];
 
     X86Gp tmp = c.getCompiler().newU8( "tmp" );
-
-    u8 b[ 10 ];
-    u8 r[ 10 ];
-    for( u32 i = 0; i < 10; i++ )
-    {
-        b[ i ] = 0xff;
-        r[ i ] = 0xff;
-    }
-
     for( u32 i = 0; i < 2; i++ )
     {
         c.getCompiler().mov( tmp, x86::ptr( c.getVal2Reg()[ res ], i ) );
@@ -1153,37 +1144,35 @@ libcsel_ir::Value* CselIRToAsmJitPass::execute(
         value.getName(), func_ptr, c.getCallable( &value.getCallee() ).getPtr(),
         c.getLogger().getString() );
 
-    printf( "b: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n", b[ 0 ],
-        b[ 1 ], b[ 2 ], b[ 3 ], b[ 4 ], b[ 5 ], b[ 6 ], b[ 7 ], b[ 8 ],
-        b[ 9 ] );
+    u8 b[ 10 ];
+    for( u32 i = 0; i < 10; i++ )
+    {
+        b[ i ] = 0xff;
+    }
 
-    printf( "r: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n", r[ 0 ],
-        r[ 1 ], r[ 2 ], r[ 3 ], r[ 4 ], r[ 5 ], r[ 6 ], r[ 7 ], r[ 8 ],
-        r[ 9 ] );
-
-    printf( "calling: %p\n", c.getCallable( &value.getCallee() ).getPtr() );
-    typedef void ( *CallableType2 )( void*, void* );
-    ( (CallableType2)c.getCallable( &value.getCallee() ).getPtr() )(
-        &b[ 0 ], &r[ 0 ] );
-
-    printf( "b: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n", b[ 0 ],
-        b[ 1 ], b[ 2 ], b[ 3 ], b[ 4 ], b[ 5 ], b[ 6 ], b[ 7 ], b[ 8 ],
-        b[ 9 ] );
-
-    printf( "r: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n", r[ 0 ],
-        r[ 1 ], r[ 2 ], r[ 3 ], r[ 4 ], r[ 5 ], r[ 6 ], r[ 7 ], r[ 8 ],
-        r[ 9 ] );
+    // printf( "b: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n", b[ 0 ],
+    //     b[ 1 ], b[ 2 ], b[ 3 ], b[ 4 ], b[ 5 ], b[ 6 ], b[ 7 ], b[ 8 ],
+    //     b[ 9 ] );
 
     printf( "calling: %p\n", c.getCallable( &value ).getPtr() );
     typedef void ( *CallableType )( void* );
-    ( (CallableType)c.getCallable( &value ).getPtr() )( &b[ 4 ] );
+    ( (CallableType)c.getCallable( &value ).getPtr() )( &b );
 
-    printf( "b: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n", b[ 0 ],
-        b[ 1 ], b[ 2 ], b[ 3 ], b[ 4 ], b[ 5 ], b[ 6 ], b[ 7 ], b[ 8 ],
-        b[ 9 ] );
+    // printf( "b: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n", b[ 0 ],
+    //     b[ 1 ], b[ 2 ], b[ 3 ], b[ 4 ], b[ 5 ], b[ 6 ], b[ 7 ], b[ 8 ],
+    //     b[ 9 ] );
 
-    return libcsel_ir::Constant::getStructureZero( *value.getType() );
-    // Bit( libcsel_ir::Type::getBit( 37 ), 37 );
+    assert( value.getType()->isStructure()
+            and value.getType()->getResults().size() == 2 );
+
+    return libcsel_ir::Constant::getStructure( value.getType(),
+        { libcsel_ir::Constant::getBit(
+              value.getType()->getResults()[ 0 ], b[ 0 ] ),
+            libcsel_ir::Constant::getBit(
+                value.getType()->getResults()[ 1 ], b[ 1 ] ) } );
+
+    // return libcsel_ir::Constant::getStructureZero( *value.getType() );
+    // // Bit( libcsel_ir::Type::getBit( 37 ), 37 );
 }
 
 //
