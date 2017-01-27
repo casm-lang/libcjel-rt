@@ -842,26 +842,26 @@ void CselIRToAsmJitPass::visit_epilog(
 }
 
 //
-// EquUnsignedInstruction
+// EquInstruction
 //
 
 void CselIRToAsmJitPass::visit_prolog(
-    EquUnsignedInstruction& value, libcsel_ir::Context& cxt )
+    EquInstruction& value, libcsel_ir::Context& cxt )
 {
     TRACE( "" );
     FIXME();
 }
 void CselIRToAsmJitPass::visit_epilog(
-    EquUnsignedInstruction& value, libcsel_ir::Context& cxt )
+    EquInstruction& value, libcsel_ir::Context& cxt )
 {
 }
 
 //
-// NeqUnsignedInstruction
+// NeqInstruction
 //
 
 void CselIRToAsmJitPass::visit_prolog(
-    NeqUnsignedInstruction& value, libcsel_ir::Context& cxt )
+    NeqInstruction& value, libcsel_ir::Context& cxt )
 {
     TRACE( "" );
 
@@ -904,7 +904,7 @@ void CselIRToAsmJitPass::visit_prolog(
     VERBOSE( "bind 'lbl_exit'" );
 }
 void CselIRToAsmJitPass::visit_epilog(
-    NeqUnsignedInstruction& value, libcsel_ir::Context& cxt )
+    NeqInstruction& value, libcsel_ir::Context& cxt )
 {
 }
 
@@ -1083,15 +1083,13 @@ void CselIRToAsmJitPass::visit_epilog(
 }
 
 libcsel_ir::Value* CselIRToAsmJitPass::execute(
-    libcsel_ir::CallInstruction& value )
+    libcsel_ir::CallInstruction& value, Context& c )
 {
     libcsel_ir::CselIRDumpPass dump;
-
-    libcsel_rt::CselIRToAsmJitPass::Context c;
-
+    
     // create Builtin/Rule asm jit
-    // c.reset(); // not needed do to context creation above!
-
+    c.reset();
+    
     value.getCallee().iterate( libcsel_ir::Traversal::PREORDER, this, &c );
     value.getCallee().iterate( libcsel_ir::Traversal::PREORDER, &dump );
 
