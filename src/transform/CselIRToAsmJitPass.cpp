@@ -27,6 +27,7 @@
 
 #include "../stdhl/cpp/Default.h"
 #include "../stdhl/cpp/Math.h"
+#include "../stdhl/cpp/Log.h"
 
 using namespace libcsel_ir;
 using namespace libcsel_rt;
@@ -47,7 +48,7 @@ bool CselIRToAsmJitPass::run( libpass::PassResult& pr )
 #define TRACE( FMT, ARGS... )                                                  \
     libstdhl::Log::info(                                                       \
         "Asmjit:%i: %p: %s | %s | '%s' | size=%lu | @ %p" FMT, __LINE__,       \
-        &value, value.getName(), value.getLabel(), value.getType()->getName(), \
+        &value, value.getName(), value.label(), value.getType()->getName(), \
         value.getType()->getSize(), cxt, ##ARGS )
 #else
 #define TRACE( FMT, ARGS... )
@@ -55,7 +56,7 @@ bool CselIRToAsmJitPass::run( libpass::PassResult& pr )
 
 #define VERBOSE( FMT, ARGS... )                                                \
     libstdhl::Log::info( "[%s %s] %s = " FMT, value.getName(),                 \
-        value.getType()->getName(), value.getLabel(), ##ARGS )
+        value.getType()->getName(), value.label(), ##ARGS )
 
 #define FIXME()                                                                \
     {                                                                          \
@@ -139,25 +140,25 @@ void CselIRToAsmJitPass::alloc_reg_for_value( Value& value, Context& c )
             else if( type.getSize() <= 8 )
             {
                 c.getVal2Reg()[&value ]
-                    = c.getCompiler().newU8( value.getLabel() );
+                    = c.getCompiler().newU8( value.label() );
                 VERBOSE( "newU8" );
             }
             else if( type.getSize() <= 16 )
             {
                 c.getVal2Reg()[&value ]
-                    = c.getCompiler().newU16( value.getLabel() );
+                    = c.getCompiler().newU16( value.label() );
                 VERBOSE( "newU16" );
             }
             else if( type.getSize() <= 32 )
             {
                 c.getVal2Reg()[&value ]
-                    = c.getCompiler().newU32( value.getLabel() );
+                    = c.getCompiler().newU32( value.label() );
                 VERBOSE( "newU32" );
             }
             else if( type.getSize() <= 64 )
             {
                 c.getVal2Reg()[&value ]
-                    = c.getCompiler().newU64( value.getLabel() );
+                    = c.getCompiler().newU64( value.label() );
                 VERBOSE( "newU64" );
             }
             else
@@ -170,7 +171,7 @@ void CselIRToAsmJitPass::alloc_reg_for_value( Value& value, Context& c )
         case Type::STRUCTURE:
         {
             c.getVal2Reg()[&value ]
-                = c.getCompiler().newUIntPtr( value.getLabel() );
+                = c.getCompiler().newUIntPtr( value.label() );
             VERBOSE( "newUIntPtr" );
             break;
         }
@@ -190,12 +191,12 @@ void CselIRToAsmJitPass::alloc_reg_for_value( Value& value, Context& c )
 
         c.getCompiler().setArg(
             func.getArgSize( 1 ) - 1, c.getVal2Reg()[&value ] );
-        VERBOSE( "setArg( %u, %s )", func.getArgSize() - 1, value.getLabel() );
+        VERBOSE( "setArg( %u, %s )", func.getArgSize() - 1, value.label() );
     }
 
     // libstdhl::Log::info( "alloc '%p' for '%s' of type '%s'",
     //     &c.getVal2Reg()[&value ],
-    //     value.getLabel(),
+    //     value.label(),
     //     value.getType()->getName() );
 
     if( isa< Constant >( value ) )
@@ -232,7 +233,7 @@ void CselIRToAsmJitPass::alloc_reg_for_value( Value& value, Context& c )
 
         c.getCompiler().lea(
             c.getVal2Reg()[&value ], c.getCompiler().newStack( byte_size, 4 ) );
-        VERBOSE( "lea %s, newStack( %u, 4 )", value.getLabel(), byte_size );
+        VERBOSE( "lea %s, newStack( %u, 4 )", value.label(), byte_size );
     }
 }
 
@@ -292,7 +293,7 @@ void CselIRToAsmJitPass::visit_interlog(
     c.getLogger().clearString();
 
     c.getCompiler().addFunc( func.getSig() );
-    VERBOSE( "addFunc( %s )", value.getLabel() );
+    VERBOSE( "addFunc( %s )", value.label() );
 
     for( auto param : value.getInParameters() )
     {
@@ -510,11 +511,11 @@ void CselIRToAsmJitPass::visit_prolog(
         alloc_reg_for_value( *v, c );
     }
 
-    X86Gp fp = c.getCompiler().newIntPtr( value.getCallee().getLabel() );
+    X86Gp fp = c.getCompiler().newIntPtr( value.getCallee().label() );
     c.getCompiler().mov( fp, imm_ptr( callee.getPtr() ) );
     CCFuncCall* call = c.getCompiler().call( fp, callee.getSig() );
 
-    VERBOSE( "call( %s ) --> %lu", value.getCallee().getLabel(),
+    VERBOSE( "call( %s ) --> %lu", value.getCallee().label(),
         (u64)callee.getPtr() );
 
     u32 i = 0;
@@ -522,7 +523,7 @@ void CselIRToAsmJitPass::visit_prolog(
     {
         call->setArg( ( i - 1 ), c.getVal2Reg()[ value.getValues()[ i ] ] );
         VERBOSE(
-            "setArg( %u, %s )", i - 1, value.getValues()[ i ]->getLabel() );
+            "setArg( %u, %s )", i - 1, value.getValues()[ i ]->label() );
     }
 }
 void CselIRToAsmJitPass::visit_epilog(
@@ -653,7 +654,7 @@ void CselIRToAsmJitPass::visit_prolog(
 
         c.getVal2Mem()[&value ]
             = x86::ptr( c.getVal2Reg()[ base ], byte_offset );
-        VERBOSE( "ptr( %s, %lu ) [ '%s' @ %lu --> bs = %lu ]", base->getLabel(),
+        VERBOSE( "ptr( %s, %lu ) [ '%s' @ %lu --> bs = %lu ]", base->label(),
             byte_offset, base->getType()->getName(), index.getValue(),
             base->getType()->getResults()[ index.getValue() ]->getSize() );
     }
@@ -684,7 +685,7 @@ void CselIRToAsmJitPass::visit_prolog(
     if( isa< ExtractInstruction >( src ) )
     {
         c.getCompiler().mov( c.getVal2Reg()[&value ], c.getVal2Mem()[ src ] );
-        VERBOSE( "mov %s, %s", value.getLabel(), src->getLabel() );
+        VERBOSE( "mov %s, %s", value.label(), src->label() );
     }
     else
     {
@@ -712,7 +713,7 @@ void CselIRToAsmJitPass::visit_prolog(
     if( isa< ExtractInstruction >( dst ) )
     {
         c.getCompiler().mov( c.getVal2Mem()[ dst ], c.getVal2Reg()[ src ] );
-        VERBOSE( "mov %s, %s", dst->getLabel(), src->getLabel() );
+        VERBOSE( "mov %s, %s", dst->label(), src->label() );
     }
     else
     {
@@ -759,7 +760,7 @@ void CselIRToAsmJitPass::visit_prolog(
 
     c.getCompiler().andn(
         c.getVal2Reg()[ res ], c.getVal2Reg()[ lhs ], c.getVal2Reg()[ rhs ] );
-    VERBOSE( "andn %s, %s", lhs->getLabel(), rhs->getLabel() );
+    VERBOSE( "andn %s, %s", lhs->label(), rhs->label() );
 }
 void CselIRToAsmJitPass::visit_epilog(
     AndInstruction& value, libcsel_ir::Context& cxt )
@@ -879,7 +880,7 @@ void CselIRToAsmJitPass::visit_prolog(
     alloc_reg_for_value( *rhs, c );
 
     c.getCompiler().cmp( c.getVal2Reg()[ lhs ], c.getVal2Reg()[ rhs ] );
-    VERBOSE( "cmp %s, %s", lhs->getLabel(), rhs->getLabel() );
+    VERBOSE( "cmp %s, %s", lhs->label(), rhs->label() );
 
     // jump if not equal to true path, else cont with false path
     c.getCompiler().jne( lbl_true );
@@ -887,7 +888,7 @@ void CselIRToAsmJitPass::visit_prolog(
 
     // false path
     c.getCompiler().mov( c.getVal2Reg()[&value ], asmjit::imm( 0 ) );
-    VERBOSE( "mov %s, imm( 0 )", value.getLabel() );
+    VERBOSE( "mov %s, imm( 0 )", value.label() );
 
     c.getCompiler().jmp( lbl_exit );
     VERBOSE( "jmp 'lbl_exit'" );
@@ -897,7 +898,7 @@ void CselIRToAsmJitPass::visit_prolog(
     VERBOSE( "bind 'lbl_true'" );
 
     c.getCompiler().mov( c.getVal2Reg()[&value ], asmjit::imm( 1 ) );
-    VERBOSE( "mov %s, imm(1)", value.getLabel() );
+    VERBOSE( "mov %s, imm(1)", value.label() );
 
     // end if compare
     c.getCompiler().bind( lbl_exit );
@@ -951,22 +952,22 @@ void CselIRToAsmJitPass::visit_prolog(
             else if( type.getSize() <= 8 )
             {
                 c.getVal2Reg()[ res ] = c.getVal2Reg()[ arg ].r8();
-                VERBOSE( "%s.r8()", arg->getLabel() );
+                VERBOSE( "%s.r8()", arg->label() );
             }
             else if( type.getSize() <= 16 )
             {
                 c.getVal2Reg()[ res ] = c.getVal2Reg()[ arg ].r16();
-                VERBOSE( "%s.r16()", arg->getLabel() );
+                VERBOSE( "%s.r16()", arg->label() );
             }
             else if( type.getSize() <= 32 )
             {
                 c.getVal2Reg()[ res ] = c.getVal2Reg()[ arg ].r32();
-                VERBOSE( "%s.r32()", arg->getLabel() );
+                VERBOSE( "%s.r32()", arg->label() );
             }
             else if( type.getSize() <= 64 )
             {
                 c.getVal2Reg()[ res ] = c.getVal2Reg()[ arg ].r64();
-                VERBOSE( "%s.r64()", arg->getLabel() );
+                VERBOSE( "%s.r64()", arg->label() );
             }
             else
             {
@@ -1003,7 +1004,7 @@ void CselIRToAsmJitPass::visit_prolog(
 
     c.getCompiler().mov(
         c.getVal2Reg()[&value ], asmjit::imm( value.getValue() ) );
-    VERBOSE( "mov %s, %lu", value.getLabel(), value.getValue() );
+    VERBOSE( "mov %s, %lu", value.label(), value.getValue() );
 }
 void CselIRToAsmJitPass::visit_epilog(
     BitConstant& value, libcsel_ir::Context& cxt )
@@ -1028,7 +1029,7 @@ void CselIRToAsmJitPass::visit_prolog(
 
     c.getCompiler().lea(
         c.getVal2Reg()[&value ], c.getCompiler().newStack( byte_size, 4 ) );
-    VERBOSE( "lea %s, newStack( %u, 4 )", value.getLabel(), byte_size );
+    VERBOSE( "lea %s, newStack( %u, 4 )", value.label(), byte_size );
 
     u32 byte_offset = 0;
     for( auto v : value.getValue() )
@@ -1037,8 +1038,8 @@ void CselIRToAsmJitPass::visit_prolog(
 
         c.getCompiler().mov( x86::ptr( c.getVal2Reg()[&value ], byte_offset ),
             c.getVal2Reg()[ v ] );
-        VERBOSE( "mov ptr( %s, %u), %s", value.getLabel(), byte_offset,
-            v->getLabel() );
+        VERBOSE( "mov ptr( %s, %u), %s", value.label(), byte_offset,
+            v->label() );
 
         bit_size = v->getType()->getSize();
         byte_size = bit_size / 8 + ( ( bit_size % 8 ) % 2 );
@@ -1083,6 +1084,62 @@ void CselIRToAsmJitPass::visit_epilog(
 }
 
 libcsel_ir::Value* CselIRToAsmJitPass::execute(
+    libcsel_ir::OperatorInstruction& value, Context& c )
+{
+    libcsel_ir::CselIRDumpPass dump;
+    c.reset();
+    
+    Context::Callable& func = c.getCallable( &value );
+    func.getArgSize( -1 );
+
+    FuncSignatureX& fsig = func.getSig();
+    fsig.init( CallConv::kIdHost, TypeId::kVoid, fsig._builderArgList, 0 );
+    fsig.addArg( TypeId::kUIntPtr );
+
+    c.getCompiler().addFunc( func.getSig() );
+    VERBOSE( "addFunc( %s )", value.label() );
+
+    X86Gp out = c.getCompiler().newUIntPtr( "out" );
+    c.getCompiler().setArg( 0, out );
+    VERBOSE( "setArg( %u, %s )", 0, "out" );
+    
+    value.iterate( libcsel_ir::Traversal::PREORDER, this, &c );
+    value.iterate( libcsel_ir::Traversal::PREORDER, &dump );
+
+    // assert( value.getValues().size() == 3 );
+    // assert( libcsel_ir::isa< libcsel_ir::AllocInstruction >(
+    //     value.getValues()[ 2 ] ) );
+
+    // libcsel_ir::Value* res = value.getValues()[ 2 ];
+
+    // X86Gp tmp = c.getCompiler().newU8( "tmp" );
+    // for( u32 i = 0; i < 2; i++ )
+    // {
+    //     c.getCompiler().mov( tmp, x86::ptr( c.getVal2Reg()[ res ], i ) );
+    //     c.getCompiler().mov( x86::ptr( out, i ), tmp );
+    // }
+
+    c.getCompiler().endFunc();
+    c.getCompiler().finalize();
+
+    void** func_ptr;
+    Error err = c.getRunTime().add( &func_ptr, &c.getCodeHolder() );
+    assert( not err );
+    func.getPtr( func_ptr );
+
+    fprintf( stderr,
+        "asmjit: %s @ %p\n"
+        "~~~{.asm}\n"
+        "%s"
+        "~~~\n",
+        value.getName(), func_ptr,
+        c.getLogger().getString() );
+
+    return 0;
+}
+
+
+libcsel_ir::Value* CselIRToAsmJitPass::execute(
     libcsel_ir::CallInstruction& value, Context& c )
 {
     libcsel_ir::CselIRDumpPass dump;
@@ -1104,7 +1161,7 @@ libcsel_ir::Value* CselIRToAsmJitPass::execute(
     fsig.addArg( TypeId::kUIntPtr );
 
     c.getCompiler().addFunc( func.getSig() );
-    VERBOSE( "addFunc( %s )", value.getLabel() );
+    VERBOSE( "addFunc( %s )", value.label() );
 
     X86Gp out = c.getCompiler().newUIntPtr( "out" );
     c.getCompiler().setArg( 0, out );

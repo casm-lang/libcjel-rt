@@ -21,40 +21,21 @@
 //  along with libcsel-rt. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "Instruction.h"
+#include "gtest/gtest.h"
 
-#include "transform/CselIRToAsmJitPass.h"
+#include "libcsel-ir.h"
+#include "libcsel-rt.h"
 
-#include "../csel-ir/src/Instruction.h"
-#include "../csel-ir/src/Value.h"
+using namespace libcsel_ir;
 
-#include "../stdhl/cpp/Default.h"
-#include "../stdhl/cpp/Log.h"
-
-using namespace libcsel_rt;
-
-libcsel_ir::Value* Instruction::execute( libcsel_ir::Instruction& value )
+TEST( libcsel_rt__instruction, neq )
 {
-    libstdhl::Log::info( "%s", __FUNCTION__ );
+    Value* x = Constant::getBit( Type::getBit(7), 17 );
+    Value* y = Constant::getBit( Type::getBit(7), 71 );
 
-    libcsel_rt::CselIRToAsmJitPass::Context c;
-    libcsel_rt::CselIRToAsmJitPass x;
+    Instruction* i = new NeqInstruction( x, y );
 
-    if( libcsel_ir::isa< libcsel_ir::CallInstruction >( value ) )
-    {
-        return x.execute( static_cast< libcsel_ir::CallInstruction& >( value ), c );
-    }
-    else if( libcsel_ir::isa< libcsel_ir::OperatorInstruction >( value ) )
-    {
-        return x.execute( static_cast< libcsel_ir::OperatorInstruction& >( value ), c );
-    }    
-    else
-    {
-        libstdhl::Log::error( "%s:%i: unimplemented instruction to be executed",
-            __FILE__, __LINE__ );
-        assert( 0 );
-    }
-    return 0;
+    libcsel_rt::Instruction::execute( *i );
 }
 
 //

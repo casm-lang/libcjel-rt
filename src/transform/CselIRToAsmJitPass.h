@@ -177,6 +177,8 @@ namespace libcsel_rt
         void alloc_reg_for_value( libcsel_ir::Value& value, Context& c );
 
       public:
+        libcsel_ir::Value* execute( libcsel_ir::OperatorInstruction& value, Context& c );
+
         libcsel_ir::Value* execute( libcsel_ir::CallInstruction& value, Context& c );
     };
 }
