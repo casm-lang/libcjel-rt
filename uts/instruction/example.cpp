@@ -30,12 +30,14 @@ using namespace libcsel_ir;
 
 TEST( libcsel_rt__instruction, neq )
 {
-    Value* x = Constant::getBit( Type::getBit(7), 17 );
-    Value* y = Constant::getBit( Type::getBit(7), 71 );
+    Value* a = Constant::getBit( Type::getBit( 7 ), 17 );
+    Value* b = Constant::getBit( Type::getBit( 7 ), 71 );
 
-    Instruction* i = new NeqInstruction( x, y );
+    Instruction* i = new NeqInstruction( a, b );
 
-    libcsel_rt::Instruction::execute( *i );
+    Value* r = libcsel_rt::Instruction::execute( *i );
+    
+    ASSERT_TRUE( *r == *Constant::TRUE() );
 }
 
 //

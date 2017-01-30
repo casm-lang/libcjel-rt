@@ -26,8 +26,8 @@
 #include "../csel-ir/src/analyze/CselIRDumpPass.h"
 
 #include "../stdhl/cpp/Default.h"
-#include "../stdhl/cpp/Math.h"
 #include "../stdhl/cpp/Log.h"
+#include "../stdhl/cpp/Math.h"
 
 using namespace libcsel_ir;
 using namespace libcsel_rt;
@@ -48,7 +48,7 @@ bool CselIRToAsmJitPass::run( libpass::PassResult& pr )
 #define TRACE( FMT, ARGS... )                                                  \
     libstdhl::Log::info(                                                       \
         "Asmjit:%i: %p: %s | %s | '%s' | size=%lu | @ %p" FMT, __LINE__,       \
-        &value, value.getName(), value.label(), value.getType()->getName(), \
+        &value, value.getName(), value.label(), value.getType()->getName(),    \
         value.getType()->getSize(), cxt, ##ARGS )
 #else
 #define TRACE( FMT, ARGS... )
@@ -515,15 +515,14 @@ void CselIRToAsmJitPass::visit_prolog(
     c.getCompiler().mov( fp, imm_ptr( callee.getPtr() ) );
     CCFuncCall* call = c.getCompiler().call( fp, callee.getSig() );
 
-    VERBOSE( "call( %s ) --> %lu", value.getCallee().label(),
-        (u64)callee.getPtr() );
+    VERBOSE(
+        "call( %s ) --> %lu", value.getCallee().label(), (u64)callee.getPtr() );
 
     u32 i = 0;
     for( i = 1; i < value.getValues().size(); i++ )
     {
         call->setArg( ( i - 1 ), c.getVal2Reg()[ value.getValues()[ i ] ] );
-        VERBOSE(
-            "setArg( %u, %s )", i - 1, value.getValues()[ i ]->label() );
+        VERBOSE( "setArg( %u, %s )", i - 1, value.getValues()[ i ]->label() );
     }
 }
 void CselIRToAsmJitPass::visit_epilog(
@@ -1038,8 +1037,8 @@ void CselIRToAsmJitPass::visit_prolog(
 
         c.getCompiler().mov( x86::ptr( c.getVal2Reg()[&value ], byte_offset ),
             c.getVal2Reg()[ v ] );
-        VERBOSE( "mov ptr( %s, %u), %s", value.label(), byte_offset,
-            v->label() );
+        VERBOSE(
+            "mov ptr( %s, %u), %s", value.label(), byte_offset, v->label() );
 
         bit_size = v->getType()->getSize();
         byte_size = bit_size / 8 + ( ( bit_size % 8 ) % 2 );
@@ -1088,7 +1087,7 @@ libcsel_ir::Value* CselIRToAsmJitPass::execute(
 {
     libcsel_ir::CselIRDumpPass dump;
     c.reset();
-    
+
     Context::Callable& func = c.getCallable( &value );
     func.getArgSize( -1 );
 
@@ -1097,27 +1096,27 @@ libcsel_ir::Value* CselIRToAsmJitPass::execute(
     fsig.addArg( TypeId::kUIntPtr );
 
     c.getCompiler().addFunc( func.getSig() );
-    VERBOSE( "addFunc( %s )", value.label() );
+    VERBOSE( "addFunc( %s )", value.getName() );
 
     X86Gp out = c.getCompiler().newUIntPtr( "out" );
     c.getCompiler().setArg( 0, out );
     VERBOSE( "setArg( %u, %s )", 0, "out" );
-    
+
+    assert( value.getValues().size() == 2 );
+    assert( libcsel_ir::isa< libcsel_ir::Constant >( value.getValues()[ 0 ] ) );
+    assert( libcsel_ir::isa< libcsel_ir::Constant >( value.getValues()[ 1 ] ) );
+
     value.iterate( libcsel_ir::Traversal::PREORDER, this, &c );
     value.iterate( libcsel_ir::Traversal::PREORDER, &dump );
 
-    // assert( value.getValues().size() == 3 );
-    // assert( libcsel_ir::isa< libcsel_ir::AllocInstruction >(
-    //     value.getValues()[ 2 ] ) );
+    u32 byte_size = calc_byte_size( *value.getType() );
 
-    // libcsel_ir::Value* res = value.getValues()[ 2 ];
-
-    // X86Gp tmp = c.getCompiler().newU8( "tmp" );
-    // for( u32 i = 0; i < 2; i++ )
-    // {
-    //     c.getCompiler().mov( tmp, x86::ptr( c.getVal2Reg()[ res ], i ) );
-    //     c.getCompiler().mov( x86::ptr( out, i ), tmp );
-    // }
+    X86Gp tmp = c.getCompiler().newU8( "tmp" );
+    for( u32 i = 0; i < byte_size; i++ )
+    {
+        c.getCompiler().mov( tmp, c.getVal2Reg()[&value ] );
+        c.getCompiler().mov( x86::ptr( out, i ), tmp );
+    }
 
     c.getCompiler().endFunc();
     c.getCompiler().finalize();
@@ -1132,21 +1131,40 @@ libcsel_ir::Value* CselIRToAsmJitPass::execute(
         "~~~{.asm}\n"
         "%s"
         "~~~\n",
-        value.getName(), func_ptr,
-        c.getLogger().getString() );
+        value.getName(), func_ptr, c.getLogger().getString() );
 
-    return 0;
+    u8 b[ 10 ];
+    for( u32 i = 0; i < 10; i++ )
+    {
+        b[ i ] = 0xff;
+    }
+
+    printf( "b: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n", b[ 0 ],
+        b[ 1 ], b[ 2 ], b[ 3 ], b[ 4 ], b[ 5 ], b[ 6 ], b[ 7 ], b[ 8 ],
+        b[ 9 ] );
+
+    printf( "calling: %p\n", c.getCallable( &value ).getPtr() );
+    typedef void ( *CallableType )( void* );
+    ( (CallableType)c.getCallable( &value ).getPtr() )( &b );
+
+    printf( "b: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n", b[ 0 ],
+        b[ 1 ], b[ 2 ], b[ 3 ], b[ 4 ], b[ 5 ], b[ 6 ], b[ 7 ], b[ 8 ],
+        b[ 9 ] );
+
+    assert( value.getType()->isBit() );
+    assert( value.getType()->getSize() <= 8 );
+    
+    return libcsel_ir::Constant::getBit( value.getType(), b[ 0 ] );
 }
-
 
 libcsel_ir::Value* CselIRToAsmJitPass::execute(
     libcsel_ir::CallInstruction& value, Context& c )
 {
     libcsel_ir::CselIRDumpPass dump;
-    
+
     // create Builtin/Rule asm jit
     c.reset();
-    
+
     value.getCallee().iterate( libcsel_ir::Traversal::PREORDER, this, &c );
     value.getCallee().iterate( libcsel_ir::Traversal::PREORDER, &dump );
 
