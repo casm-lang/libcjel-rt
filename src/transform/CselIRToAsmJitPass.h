@@ -48,128 +48,129 @@ namespace libcsel_rt
             class Callable
             {
               private:
-                asmjit::FuncSignatureX func_sig;
-                void** func_ptr;
-                u32 arg_size;
+                asmjit::FuncSignatureX m_func_sig;
+                void** m_func_ptr;
+                u32 m_arg_size;
 
               public:
                 Callable()
-                : func_sig()
-                , func_ptr( nullptr )
-                , arg_size( 0 ){};
+                : m_func_sig()
+                , m_func_ptr( nullptr )
+                , m_arg_size( 0 ){};
 
-                asmjit::FuncSignatureX& getSig( void )
+                asmjit::FuncSignatureX& funcsig( void )
                 {
-                    return func_sig;
+                    return m_func_sig;
                 }
 
-                void** getPtr( void** set = nullptr )
+                void** funcptr( void** set = nullptr )
                 {
                     if( set )
                     {
-                        func_ptr = set;
+                        m_func_ptr = set;
                     }
-                    return func_ptr;
+                    return m_func_ptr;
                 }
 
-                u32 getArgSize( i8 increment = 0 )
+                u32 argsize( i8 increment = 0 )
                 {
                     if( increment > 0 )
                     {
-                        arg_size++;
+                        m_arg_size++;
                     }
                     else if( increment < 0 )
                     {
-                        arg_size = 0;
+                        m_arg_size = 0;
                     }
-                    return arg_size;
+                    return m_arg_size;
                 }
             };
 
           private:
-            asmjit::JitRuntime runtime;
-            asmjit::CodeHolder codeholder;
-            asmjit::StringLogger logger;
+            asmjit::JitRuntime m_runtime;
+            asmjit::CodeHolder m_codeholder;
+            asmjit::StringLogger m_logger;
 
-            asmjit::X86Compiler compiler;
+            asmjit::X86Compiler m_compiler;
 
-            Callable* callable_last_accessed;
+            Callable* m_callable_last_accessed;
 
-            std::unordered_map< libcsel_ir::Value*, Callable > callables;
+            std::unordered_map< libcsel_ir::Value*, Callable > m_callables;
 
-            std::unordered_map< libcsel_ir::Value*, asmjit::X86Gp > val2reg;
-            std::unordered_map< libcsel_ir::Value*, asmjit::X86Mem > val2mem;
+            std::unordered_map< libcsel_ir::Value*, asmjit::X86Gp > m_val2reg;
+            std::unordered_map< libcsel_ir::Value*, asmjit::X86Mem > m_val2mem;
 
           public:
             Context( void )
-            : runtime()
-            , codeholder()
-            , compiler()
-            , callable_last_accessed( 0 )
+            : m_runtime()
+            , m_codeholder()
+            , m_compiler()
+            , m_callable_last_accessed( 0 )
             {
                 reset();
 
-                logger.addOptions( asmjit::Logger::kOptionBinaryForm );
+                m_logger.addOptions( asmjit::Logger::kOptionBinaryForm );
             }
 
             void reset( void )
             {
-                compiler.onDetach( &codeholder );
+                m_compiler.onDetach( &m_codeholder );
 
-                codeholder.reset();
-                codeholder.init( runtime.getCodeInfo() );
-                codeholder.attach( &compiler );
-                codeholder.setLogger( &logger );
+                m_codeholder.reset();
+                m_codeholder.init( m_runtime.getCodeInfo() );
+                m_codeholder.attach( &m_compiler );
+                m_codeholder.setLogger( &m_logger );
 
-                logger.clearString();
+                m_logger.clearString();
             }
 
             u1 hasCallable( libcsel_ir::Value& value )
             {
-                return callables.find( &value ) != callables.end();
+                return m_callables.find( &value ) != m_callables.end();
             }
 
-            Callable& getCallable( libcsel_ir::Value* value = nullptr )
+            Callable& callable( libcsel_ir::Value* value = nullptr )
             {
                 if( value )
                 {
-                    callable_last_accessed
-                        = &callables.emplace( value, Callable() ).first->second;
+                    m_callable_last_accessed
+                        = &m_callables.emplace( value, Callable() )
+                               .first->second;
                 }
 
-                return *callable_last_accessed;
+                return *m_callable_last_accessed;
             }
 
-            asmjit::JitRuntime& getRunTime( void )
+            asmjit::JitRuntime& runtime( void )
             {
-                return runtime;
+                return m_runtime;
             }
 
-            asmjit::CodeHolder& getCodeHolder( void )
+            asmjit::CodeHolder& codeholder( void )
             {
-                return codeholder;
+                return m_codeholder;
             }
 
-            asmjit::StringLogger& getLogger( void )
+            asmjit::StringLogger& logger( void )
             {
-                return logger;
+                return m_logger;
             }
 
-            asmjit::X86Compiler& getCompiler( void )
+            asmjit::X86Compiler& compiler( void )
             {
-                return compiler;
+                return m_compiler;
             }
 
-            std::unordered_map< libcsel_ir::Value*, asmjit::X86Gp >& getVal2Reg(
+            std::unordered_map< libcsel_ir::Value*, asmjit::X86Gp >& val2reg(
                 void )
             {
-                return val2reg;
+                return m_val2reg;
             }
 
-            std::unordered_map< libcsel_ir::Value*, asmjit::X86Mem >&
-            getVal2Mem( void )
+            std::unordered_map< libcsel_ir::Value*, asmjit::X86Mem >& val2mem(
+                void )
             {
-                return val2mem;
+                return m_val2mem;
             }
         };
 
@@ -177,9 +178,11 @@ namespace libcsel_rt
         void alloc_reg_for_value( libcsel_ir::Value& value, Context& c );
 
       public:
-        libcsel_ir::Value* execute( libcsel_ir::OperatorInstruction& value, Context& c );
+        libcsel_ir::Value* execute(
+            libcsel_ir::OperatorInstruction& value, Context& c );
 
-        libcsel_ir::Value* execute( libcsel_ir::CallInstruction& value, Context& c );
+        libcsel_ir::Value* execute(
+            libcsel_ir::CallInstruction& value, Context& c );
     };
 }
 

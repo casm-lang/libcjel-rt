@@ -39,32 +39,32 @@ void CallableUnit::compile( libcsel_ir::CallableUnit& value )
     libcsel_rt::CselIRToAsmJitPass x;
     libcsel_rt::CselIRToAsmJitPass::Context c;
 
-    value.iterate( libcsel_ir::Traversal::PREORDER, &x, &c );
+    // value.iterate( libcsel_ir::Traversal::PREORDER, &x, &c );
 
-    typedef void ( *CallableType )( void*, void* );
+    // typedef void ( *CallableType )( void*, void* );
 
-    struct I
-    {
-        u64 v;
-        u8 d;
-    };
+    // struct I
+    // {
+    //     u64 v;
+    //     u8 d;
+    // };
 
-    struct B
-    {
-        u8 v;
-        u8 d;
-    };
+    // struct B
+    // {
+    //     u8 v;
+    //     u8 d;
+    // };
 
-    I i{ 44, 22 };
-    B b{ 200, 100 };
+    // I i{ 44, 22 };
+    // B b{ 200, 100 };
 
-    libstdhl::Log::info( "%s: %p:  pre: %lu, %u --> %u, %u", __FUNCTION__,
-        c.getCallable( &value ).getPtr(), i.v, i.d, b.v, b.d );
+    // libstdhl::Log::info( "%s: %p:  pre: %lu, %u --> %u, %u", __FUNCTION__,
+    //     c.getCallable( &value ).getPtr(), i.v, i.d, b.v, b.d );
 
-    ( (CallableType)c.getCallable( &value ).getPtr() )( &i, &b );
+    // ( (CallableType)c.getCallable( &value ).getPtr() )( &i, &b );
 
-    libstdhl::Log::info( "%s: %p: post: %lu, %u --> %u, %u", __FUNCTION__,
-        c.getCallable( &value ).getPtr(), i.v, i.d, b.v, b.d );
+    // libstdhl::Log::info( "%s: %p: post: %lu, %u --> %u, %u", __FUNCTION__,
+    //     c.getCallable( &value ).getPtr(), i.v, i.d, b.v, b.d );
 }
 
 //

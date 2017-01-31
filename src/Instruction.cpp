@@ -42,12 +42,14 @@ libcsel_ir::Value* Instruction::execute( libcsel_ir::Instruction& value )
 
     if( libcsel_ir::isa< libcsel_ir::CallInstruction >( value ) )
     {
-        return x.execute( static_cast< libcsel_ir::CallInstruction& >( value ), c );
+        return x.execute(
+            static_cast< libcsel_ir::CallInstruction& >( value ), c );
     }
     else if( libcsel_ir::isa< libcsel_ir::OperatorInstruction >( value ) )
     {
-        return x.execute( static_cast< libcsel_ir::OperatorInstruction& >( value ), c );
-    }    
+        return x.execute(
+            static_cast< libcsel_ir::OperatorInstruction& >( value ), c );
+    }
     else
     {
         libstdhl::Log::error( "%s:%i: unimplemented instruction to be executed",
