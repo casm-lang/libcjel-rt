@@ -24,7 +24,7 @@
 #include "gtest/gtest.h"
 
 #include "libcsel-rt.h"
-#include "libstdhlcpp.h"
+#include "libstdhl.h"
 
 #include "asmjit/asmjit.h"
 

@@ -72,10 +72,13 @@ file( GLOB_RECURSE CXX_ASMJIT_FILES "${LIBS}/asmjit/src/asmjit/*.cpp" )
 # add_library( asmjit  
 # )
 
+add_library( asmjit OBJECT
+  ${CXX_ASMJIT_FILES}
+)
 
 add_library( ${TARGET} STATIC
   ${CXX_SRC_FILES}
-  ${CXX_ASMJIT_FILES}
+  $<TARGET_OBJECTS:asmjit>
 )
 
 

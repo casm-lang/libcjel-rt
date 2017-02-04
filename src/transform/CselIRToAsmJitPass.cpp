@@ -283,8 +283,6 @@ void CselIRToAsmJitPass::visit_interlog(
     Context& c = static_cast< Context& >( cxt );
     Context::Callable& func = c.callable();
 
-    c.logger().clearString();
-
     c.compiler().addFunc( func.funcsig() );
     VERBOSE( "addFunc( %s )", value.label() );
 
@@ -318,7 +316,6 @@ void CselIRToAsmJitPass::visit_epilog(
 
     void** func_ptr;
     Error err = c.runtime().add( &func_ptr, &c.codeholder() );
-    assert( not err );
 
     fprintf( stderr,
         "asmjit: %s @ %p\n"
@@ -326,6 +323,12 @@ void CselIRToAsmJitPass::visit_epilog(
         "%s"
         "~~~\n",
         value.name(), func_ptr, c.logger().getString() );
+
+    if( err )
+    {
+        libstdhl::Log::error( "asmjit: %s", DebugUtils::errorAsString( err ) );
+        assert( 0 );
+    }
 
     Context::Callable& func = c.callable();
     func.funcptr( func_ptr );
@@ -703,8 +706,10 @@ void CselIRToAsmJitPass::visit_prolog(
 
     if( isa< ExtractInstruction >( dst ) )
     {
+        alloc_reg_for_value( *src, c );
+
         c.compiler().mov( c.val2mem()[ dst ], c.val2reg()[ src ] );
-        VERBOSE( "mov %s, %s", dst->label(), src->label() );
+        VERBOSE( "mov %s, %s (%s)", dst->label(), src->label(), src->name() );
     }
     else
     {
@@ -1114,7 +1119,12 @@ libcsel_ir::Value* CselIRToAsmJitPass::execute(
 
     void** func_ptr;
     Error err = c.runtime().add( &func_ptr, &c.codeholder() );
-    assert( not err );
+    if( err )
+    {
+        libstdhl::Log::error( "asmjit: %s", DebugUtils::errorAsString( err ) );
+        assert( 0 );
+    }
+
     func.funcptr( func_ptr );
 
     fprintf( stderr,
@@ -1156,11 +1166,13 @@ libcsel_ir::Value* CselIRToAsmJitPass::execute(
     // create Builtin/Rule asm jit
     c.reset();
 
-    value.callee().iterate( libcsel_ir::Traversal::PREORDER, this, &c );
     value.callee().iterate( libcsel_ir::Traversal::PREORDER, &dump );
+    value.callee().iterate( libcsel_ir::Traversal::PREORDER, this, &c );
 
     // create CallInstruction asm jit
     c.reset();
+
+    value.iterate( libcsel_ir::Traversal::PREORDER, &dump );
 
     Context::Callable& func = c.callable( &value );
     func.argsize( -1 );
@@ -1172,24 +1184,25 @@ libcsel_ir::Value* CselIRToAsmJitPass::execute(
     c.compiler().addFunc( func.funcsig() );
     VERBOSE( "addFunc( %s )", value.label() );
 
+    // PPA: check if output type matches !!!, maybe we need more
+    // registers/pointers here!!! as args I mean
     X86Gp out = c.compiler().newUIntPtr( "out" );
     c.compiler().setArg( 0, out );
     VERBOSE( "setArg( %u, %s )", 0, "out" );
 
     value.iterate( libcsel_ir::Traversal::PREORDER, this, &c );
-    value.iterate( libcsel_ir::Traversal::PREORDER, &dump );
-
-    assert( value.values().size() == 3 );
-    assert( libcsel_ir::isa< libcsel_ir::AllocInstruction >(
-        value.values()[ 2 ] ) );
-
-    libcsel_ir::Value* res = value.values()[ 2 ];
 
     X86Gp tmp = c.compiler().newU8( "tmp" );
-    for( u32 i = 0; i < 2; i++ )
+    for( auto v : value.values() )
     {
-        c.compiler().mov( tmp, x86::ptr( c.val2reg()[ res ], i ) );
-        c.compiler().mov( x86::ptr( out, i ), tmp );
+        if( auto res = cast< libcsel_ir::AllocInstruction >( v ) )
+        {
+            for( u32 i = 0; i < calc_byte_size( res->type() ); i++ )
+            {
+                c.compiler().mov( tmp, x86::ptr( c.val2reg()[ res ], i ) );
+                c.compiler().mov( x86::ptr( out, i ), tmp );
+            }
+        }
     }
 
     c.compiler().endFunc();
@@ -1197,7 +1210,12 @@ libcsel_ir::Value* CselIRToAsmJitPass::execute(
 
     void** func_ptr;
     Error err = c.runtime().add( &func_ptr, &c.codeholder() );
-    assert( not err );
+    if( err )
+    {
+        libstdhl::Log::error( "asmjit: %s", DebugUtils::errorAsString( err ) );
+        assert( 0 );
+    }
+
     func.funcptr( func_ptr );
 
     fprintf( stderr,

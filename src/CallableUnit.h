@@ -34,6 +34,7 @@
 
 namespace libcsel_ir
 {
+    class Value;
     class CallableUnit;
 }
 
@@ -41,12 +42,10 @@ namespace libcsel_rt
 {
     class CallableUnit : public CselRT
     {
-      public:
-        static void compile( libcsel_ir::CallableUnit& value );
     };
 }
 
-#endif /* _LIB_CSELRT_CALLABLEUNIT_H_ */
+#endif // _LIB_CSELRT_CALLABLEUNIT_H_
 
 //
 //  Local variables:
