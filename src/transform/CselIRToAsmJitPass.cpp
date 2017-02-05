@@ -1296,17 +1296,17 @@ libcsel_ir::Value* CselIRToAsmJitPass::execute(
         b[ i ] = 0xff;
     }
 
-    // printf( "b: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n", b[ 0 ],
-    //     b[ 1 ], b[ 2 ], b[ 3 ], b[ 4 ], b[ 5 ], b[ 6 ], b[ 7 ], b[ 8 ],
-    //     b[ 9 ] );
+    libstdhl::Log::info( "b: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x", b[ 0 ],
+        b[ 1 ], b[ 2 ], b[ 3 ], b[ 4 ], b[ 5 ], b[ 6 ], b[ 7 ], b[ 8 ],
+        b[ 9 ] );
 
-    printf( "calling: %p\n", c.callable( &value ).funcptr() );
+    libstdhl::Log::info( "calling: %p", c.callable( &value ).funcptr() );
     typedef void ( *CallableType )( void* );
     ( (CallableType)c.callable( &value ).funcptr() )( &b );
 
-    // printf( "b: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n", b[ 0 ],
-    //     b[ 1 ], b[ 2 ], b[ 3 ], b[ 4 ], b[ 5 ], b[ 6 ], b[ 7 ], b[ 8 ],
-    //     b[ 9 ] );
+    libstdhl::Log::info( "b: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x", b[ 0 ],
+        b[ 1 ], b[ 2 ], b[ 3 ], b[ 4 ], b[ 5 ], b[ 6 ], b[ 7 ], b[ 8 ],
+        b[ 9 ] );
 
     assert( value.type().isStructure() and value.type().results().size() == 2 );
 
