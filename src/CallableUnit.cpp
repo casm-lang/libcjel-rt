@@ -34,8 +34,6 @@
 
 using namespace libcsel_rt;
 
-
-
 //
 //  Local variables:
 //  mode: c++

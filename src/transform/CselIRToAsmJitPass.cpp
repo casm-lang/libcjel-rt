@@ -729,7 +729,19 @@ void CselIRToAsmJitPass::visit_prolog(
     NotInstruction& value, libcsel_ir::Context& cxt )
 {
     TRACE( "" );
-    FIXME();
+    Context& c = static_cast< Context& >( cxt );
+
+    Value* res = &value;
+    Value* lhs = value.value( 0 );
+
+    alloc_reg_for_value( *res, c );
+    alloc_reg_for_value( *lhs, c );
+
+    c.compiler().mov( c.val2reg()[ res ], c.val2reg()[ lhs ] );
+    VERBOSE( "mov %s, %lu", res->label(), lhs->label() );
+
+    c.compiler().not_( c.val2reg()[ res ] );
+    VERBOSE( "not_ %s", res->label() );
 }
 void CselIRToAsmJitPass::visit_epilog(
     NotInstruction& value, libcsel_ir::Context& cxt )
@@ -754,9 +766,11 @@ void CselIRToAsmJitPass::visit_prolog(
     alloc_reg_for_value( *lhs, c );
     alloc_reg_for_value( *rhs, c );
 
-    c.compiler().andn(
-        c.val2reg()[ res ], c.val2reg()[ lhs ], c.val2reg()[ rhs ] );
-    VERBOSE( "andn %s, %s", lhs->label(), rhs->label() );
+    c.compiler().mov( c.val2reg()[ res ], c.val2reg()[ lhs ] );
+    VERBOSE( "mov %s, %lu", res->label(), lhs->label() );
+
+    c.compiler().and_( c.val2reg()[ res ], c.val2reg()[ rhs ] );
+    VERBOSE( "and_ %s, %s", res->label(), rhs->label() );
 }
 void CselIRToAsmJitPass::visit_epilog(
     AndInstruction& value, libcsel_ir::Context& cxt )
@@ -771,7 +785,21 @@ void CselIRToAsmJitPass::visit_prolog(
     OrInstruction& value, libcsel_ir::Context& cxt )
 {
     TRACE( "" );
-    FIXME();
+    Context& c = static_cast< Context& >( cxt );
+
+    Value* res = &value;
+    Value* lhs = value.value( 0 );
+    Value* rhs = value.value( 1 );
+
+    alloc_reg_for_value( *res, c );
+    alloc_reg_for_value( *lhs, c );
+    alloc_reg_for_value( *rhs, c );
+
+    c.compiler().mov( c.val2reg()[ res ], c.val2reg()[ lhs ] );
+    VERBOSE( "mov %s, %lu", res->label(), lhs->label() );
+
+    c.compiler().or_( c.val2reg()[ res ], c.val2reg()[ rhs ] );
+    VERBOSE( "or_ %s, %s", res->label(), rhs->label() );
 }
 void CselIRToAsmJitPass::visit_epilog(
     OrInstruction& value, libcsel_ir::Context& cxt )
@@ -846,7 +874,43 @@ void CselIRToAsmJitPass::visit_prolog(
     EquInstruction& value, libcsel_ir::Context& cxt )
 {
     TRACE( "" );
-    FIXME();
+    Context& c = static_cast< Context& >( cxt );
+
+    Value* res = &value;
+    Value* lhs = value.value( 0 );
+    Value* rhs = value.value( 1 );
+
+    Label lbl_true = c.compiler().newLabel();
+    Label lbl_exit = c.compiler().newLabel();
+
+    alloc_reg_for_value( *res, c );
+    alloc_reg_for_value( *lhs, c );
+    alloc_reg_for_value( *rhs, c );
+
+    c.compiler().cmp( c.val2reg()[ lhs ], c.val2reg()[ rhs ] );
+    VERBOSE( "cmp %s, %s", lhs->label(), rhs->label() );
+
+    // jump if equal to true path, else cont with false path
+    c.compiler().je( lbl_true );
+    VERBOSE( "je 'lbl_true'" );
+
+    // false path
+    c.compiler().mov( c.val2reg()[&value ], asmjit::imm( 0 ) );
+    VERBOSE( "mov %s, imm( 0 )", value.label() );
+
+    c.compiler().jmp( lbl_exit );
+    VERBOSE( "jmp 'lbl_exit'" );
+
+    // true path
+    c.compiler().bind( lbl_true );
+    VERBOSE( "bind 'lbl_true'" );
+
+    c.compiler().mov( c.val2reg()[&value ], asmjit::imm( 1 ) );
+    VERBOSE( "mov %s, imm(1)", value.label() );
+
+    // end if compare
+    c.compiler().bind( lbl_exit );
+    VERBOSE( "bind 'lbl_exit'" );
 }
 void CselIRToAsmJitPass::visit_epilog(
     EquInstruction& value, libcsel_ir::Context& cxt )
@@ -861,7 +925,6 @@ void CselIRToAsmJitPass::visit_prolog(
     NeqInstruction& value, libcsel_ir::Context& cxt )
 {
     TRACE( "" );
-
     Context& c = static_cast< Context& >( cxt );
 
     Value* res = &value;
@@ -1210,13 +1273,6 @@ libcsel_ir::Value* CselIRToAsmJitPass::execute(
 
     void** func_ptr;
     Error err = c.runtime().add( &func_ptr, &c.codeholder() );
-    if( err )
-    {
-        libstdhl::Log::error( "asmjit: %s", DebugUtils::errorAsString( err ) );
-        assert( 0 );
-    }
-
-    func.funcptr( func_ptr );
 
     fprintf( stderr,
         "asmjit: %s @ %p, calling %p\n"
@@ -1225,6 +1281,14 @@ libcsel_ir::Value* CselIRToAsmJitPass::execute(
         "~~~\n",
         value.name(), func_ptr, c.callable( &value.callee() ).funcptr(),
         c.logger().getString() );
+
+    if( err )
+    {
+        libstdhl::Log::error( "asmjit: %s", DebugUtils::errorAsString( err ) );
+        assert( 0 );
+    }
+
+    func.funcptr( func_ptr );
 
     u8 b[ 10 ];
     for( u32 i = 0; i < 10; i++ )

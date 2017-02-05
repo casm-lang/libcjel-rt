@@ -30,14 +30,37 @@ using namespace libcsel_ir;
 
 TEST( libcsel_rt__instruction, neq )
 {
-    Value* a = Constant::Bit( Type::Bit( 7 ), 17 );
-    Value* b = Constant::Bit( Type::Bit( 7 ), 71 );
-
-    Instruction* i = new NeqInstruction( a, b );
-
-    Value* r = libcsel_rt::Instruction::execute( *i );
+    auto a = Constant::Bit( Type::Bit( 7 ), 17 );
+    auto b = Constant::Bit( Type::Bit( 7 ), 71 );
+    auto i = NeqInstruction( a, b );
+    auto r = libcsel_rt::Instruction::execute( i );
 
     ASSERT_TRUE( *r == *Constant::TRUE() );
+}
+
+TEST( libcsel_rt__instruction, equ )
+{
+    auto a = Constant::Bit( Type::Bit( 7 ), 17 );
+    auto b = Constant::Bit( Type::Bit( 7 ), 71 );
+    auto i = EquInstruction( a, b );
+    auto r = libcsel_rt::Instruction::execute( i );
+
+    EXPECT_TRUE( *r == *Constant::FALSE() );
+
+    EXPECT_STREQ( r->name(), "0" );
+    EXPECT_STREQ( r->type().name(), "u1" );
+}
+
+TEST( libcsel_rt__instruction, and)
+{
+    auto a = Constant::Bit( Type::Bit( 8 ), 0x18 );
+    auto b = Constant::Bit( Type::Bit( 8 ), 0xff );
+
+    auto i = AndInstruction( a, b );
+
+    auto r = libcsel_rt::Instruction::execute( i );
+
+    ASSERT_TRUE( *r == *Constant::Bit( Type::Bit( 8 ), 0x18 ) );
 }
 
 //
