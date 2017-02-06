@@ -25,7 +25,7 @@
 
 using namespace libcsel_ir;
 
-TEST( libcsel_rt__instruction, equ )
+TEST( libcsel_rt__instruction_equ, EquInstruction_Bit7 )
 {
     auto a = Constant::Bit( Type::Bit( 7 ), 17 );
     auto b = Constant::Bit( Type::Bit( 7 ), 71 );
@@ -36,6 +36,46 @@ TEST( libcsel_rt__instruction, equ )
 
     EXPECT_STREQ( r->name(), "0" );
     EXPECT_STREQ( r->type().name(), "u1" );
+}
+
+TEST( libcsel_rt__instruction_equ, EquInstruction_true )
+{
+    auto a = Constant::Bit( Type::Bit( 8 ), 123 );
+    auto b = Constant::Bit( Type::Bit( 8 ), 123 );
+    auto i = EquInstruction( a, b );
+    auto r = libcsel_rt::Instruction::execute( i );
+
+    EXPECT_TRUE( *r == *Constant::TRUE() );
+}
+
+TEST( libcsel_rt__instruction_equ, EquInstruction_true_zero )
+{
+    auto a = Constant::Bit( Type::Bit( 8 ), 0 );
+    auto b = Constant::Bit( Type::Bit( 8 ), 0 );
+    auto i = EquInstruction( a, b );
+    auto r = libcsel_rt::Instruction::execute( i );
+
+    EXPECT_TRUE( *r == *Constant::TRUE() );
+}
+
+TEST( libcsel_rt__instruction_equ, EquInstruction_false )
+{
+    auto a = Constant::Bit( Type::Bit( 8 ), 0x0f );
+    auto b = Constant::Bit( Type::Bit( 8 ), 0xf0 );
+    auto i = EquInstruction( a, b );
+    auto r = libcsel_rt::Instruction::execute( i );
+
+    EXPECT_TRUE( *r == *Constant::FALSE() );
+}
+
+TEST( libcsel_rt__instruction_equ, EquInstruction_false_zero )
+{
+    auto a = Constant::Bit( Type::Bit( 8 ), 0 );
+    auto b = Constant::Bit( Type::Bit( 8 ), 123 );
+    auto i = EquInstruction( a, b );
+    auto r = libcsel_rt::Instruction::execute( i );
+
+    EXPECT_TRUE( *r == *Constant::FALSE() );
 }
 
 //

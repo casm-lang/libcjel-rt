@@ -122,6 +122,9 @@ namespace libcsel_rt
                 m_codeholder.setLogger( &m_logger );
 
                 m_logger.clearString();
+
+                m_val2reg.clear();
+                m_val2mem.clear();
             }
 
             u1 hasCallable( libcsel_ir::Value& value )

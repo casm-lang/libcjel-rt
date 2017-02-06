@@ -150,8 +150,28 @@ void CselIRToAsmJitPass::alloc_reg_for_value( Value& value, Context& c )
 
         c.compiler().lea(
             c.val2reg()[&value ], c.compiler().newStack( byte_size, 4 ) );
-        VERBOSE( "lea %s, newStack( %u, 4 )", value.label(), byte_size );
+        VERBOSE(
+            "lea %s, newStack( %u, 4 ) ;; alloc", value.label(), byte_size );
 
+        X86Gp tmp = c.compiler().newU8( "tmp" );
+        c.compiler().mov( tmp, asmjit::imm( 0 ) );
+
+        u32 offset = 0;
+        for( auto element : value.type().results() )
+        {
+            assert( element->isBit() );
+
+            u32 top = calc_byte_size( *element );
+            u32 idx = 0;
+            for( u32 i = 0; i < top; i++ )
+            {
+                idx = i + offset;
+                c.compiler().mov( x86::ptr( c.val2reg()[&value ], idx ), tmp );
+                VERBOSE( "mov ptr( %s, %lu ), imm( 0 )", value.label(), idx );
+            }
+
+            offset += top;
+        }
         return;
     }
 
@@ -294,7 +314,7 @@ void CselIRToAsmJitPass::visit_interlog(
     Context::Callable& func = c.callable();
 
     c.compiler().addFunc( func.funcsig() );
-    VERBOSE( "addFunc( %s )", value.label() );
+    VERBOSE( "addFunc( %s )", value.name() );
 
     for( auto param : value.inParameters() )
     {
@@ -528,7 +548,8 @@ void CselIRToAsmJitPass::visit_prolog(
     for( i = 1; i < value.values().size(); i++ )
     {
         call->setArg( ( i - 1 ), c.val2reg()[ value.values()[ i ] ] );
-        VERBOSE( "setArg( %u, %s )", i - 1, value.values()[ i ]->label() );
+        VERBOSE(
+            "call->setArg( %u, %s )", i - 1, value.values()[ i ]->label() );
     }
 }
 void CselIRToAsmJitPass::visit_epilog(
@@ -1187,10 +1208,15 @@ void CselIRToAsmJitPass::visit_epilog(
     TRACE( "" );
 }
 
+//
+// JiT
+//
+
 libcsel_ir::Value* CselIRToAsmJitPass::execute(
     libcsel_ir::OperatorInstruction& value, Context& c )
 {
     libcsel_ir::CselIRDumpPass dump;
+
     c.reset();
 
     Context::Callable& func = c.callable( &value );
@@ -1291,7 +1317,7 @@ libcsel_ir::Value* CselIRToAsmJitPass::execute(
     fsig.addArg( TypeId::kUIntPtr );
 
     c.compiler().addFunc( func.funcsig() );
-    VERBOSE( "addFunc( %s )", value.label() );
+    VERBOSE( "addFunc( %s )", value.name() );
 
     // PPA: check if output type matches !!!, maybe we need more
     // registers/pointers here!!! as args I mean
@@ -1308,26 +1334,36 @@ libcsel_ir::Value* CselIRToAsmJitPass::execute(
         {
             if( res->type().isBit() )
             {
-                assert( res->type().bitsize() <= 8 );
-
                 u32 top = calc_byte_size( res->type() );
-                for( u32 i = 0; i < top; i++ )
+                for( u32 idx = 0; idx < top; idx++ )
                 {
-                    c.compiler().mov( tmp, x86::ptr( c.val2reg()[ res ], i ) );
-                    c.compiler().mov( x86::ptr( out ), tmp );
+                    c.compiler().mov(
+                        tmp, x86::ptr( c.val2reg()[ res ], idx ) );
+                    c.compiler().mov( x86::ptr( out, idx ), tmp );
                 }
             }
-            // if( res->type().isStructure() )
-            // {
-            //     c.compiler().mov( tmp, x86::ptr( c.val2reg()[ res ], i ) );
-            //     c.compiler().mov( x86::ptr( out, i ), tmp );
+            else if( res->type().isStructure() )
+            {
+                u32 offset = 0;
 
-            //     // for( res->type() )
+                for( auto element : res->type().results() )
+                {
+                    assert( element->isBit() );
 
-            //     // for( u32 i = 0; i < calc_byte_size( res->type() ); i++ )
-            //     // {
-            //     // }
-            // }
+                    u32 top = calc_byte_size( *element );
+                    u32 idx = 0;
+                    for( u32 i = 0; i < top; i++ )
+                    {
+                        idx = i + offset;
+
+                        c.compiler().mov(
+                            tmp, x86::ptr( c.val2reg()[ res ], idx ) );
+                        c.compiler().mov( x86::ptr( out, idx ), tmp );
+                    }
+
+                    offset += top;
+                }
+            }
             else
             {
                 assert( !"UNIMPLEMENTED!" );

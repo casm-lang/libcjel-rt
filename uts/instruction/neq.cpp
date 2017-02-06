@@ -45,6 +45,18 @@ TEST( libcsel_rt__instruction_neq, NeqInstruction_true_zero )
     EXPECT_TRUE( *r == *Constant::TRUE() );
 }
 
+TEST( libcsel_rt__instruction_neq, NeqInstruction_true_zero_64 )
+{
+    auto t = Type::Bit( 64 );
+
+    auto a = Constant::Bit( t, 0 );
+    auto b = Constant::Bit( t, 123 );
+    auto i = NeqInstruction( a, b );
+    auto r = libcsel_rt::Instruction::execute( i );
+
+    EXPECT_TRUE( *r == *Constant::TRUE() );
+}
+
 TEST( libcsel_rt__instruction_neq, NeqInstruction_false )
 {
     auto a = Constant::Bit( Type::Bit( 8 ), 123 );
