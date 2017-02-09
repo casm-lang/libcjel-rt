@@ -776,13 +776,62 @@ void CselIRToAsmJitPass::visit_prolog(
     alloc_reg_for_value( *lhs, c );
 
     c.compiler().mov( c.val2reg()[ res ], c.val2reg()[ lhs ] );
-    VERBOSE( "mov %s, %lu", res->label(), lhs->label() );
+    VERBOSE( "mov %s, %s", res->label(), lhs->label() );
 
     c.compiler().not_( c.val2reg()[ res ] );
     VERBOSE( "not_ %s", res->label() );
 }
 void CselIRToAsmJitPass::visit_epilog(
     NotInstruction& value, libcsel_ir::Context& cxt )
+{
+}
+
+//
+// LnotInstruction
+//
+
+void CselIRToAsmJitPass::visit_prolog(
+    LnotInstruction& value, libcsel_ir::Context& cxt )
+{
+    TRACE( "" );
+    Context& c = static_cast< Context& >( cxt );
+
+    Value* res = &value;
+    Value* lhs = value.value( 0 );
+
+    Label lbl_true = c.compiler().newLabel();
+    Label lbl_exit = c.compiler().newLabel();
+
+    alloc_reg_for_value( *res, c );
+    alloc_reg_for_value( *lhs, c );
+
+    c.compiler().cmp( c.val2reg()[ lhs ], asmjit::imm( 0 ) );
+    VERBOSE( "cmp %s, imm( 0 )", lhs->label() );
+
+    // jump if equal to true path, else cont with false path
+    c.compiler().je( lbl_true );
+    VERBOSE( "je 'lbl_true'" );
+
+    // false path
+    c.compiler().mov( c.val2reg()[&value ], asmjit::imm( 0 ) );
+    VERBOSE( "mov %s, imm( 0 )", value.label() );
+
+    c.compiler().jmp( lbl_exit );
+    VERBOSE( "jmp 'lbl_exit'" );
+
+    // true path
+    c.compiler().bind( lbl_true );
+    VERBOSE( "bind 'lbl_true'" );
+
+    c.compiler().mov( c.val2reg()[&value ], asmjit::imm( 1 ) );
+    VERBOSE( "mov %s, imm( 1 )", value.label() );
+
+    // end if compare
+    c.compiler().bind( lbl_exit );
+    VERBOSE( "bind 'lbl_exit'" );
+}
+void CselIRToAsmJitPass::visit_epilog(
+    LnotInstruction& value, libcsel_ir::Context& cxt )
 {
 }
 
@@ -805,7 +854,7 @@ void CselIRToAsmJitPass::visit_prolog(
     alloc_reg_for_value( *rhs, c );
 
     c.compiler().mov( c.val2reg()[ res ], c.val2reg()[ lhs ] );
-    VERBOSE( "mov %s, %lu", res->label(), lhs->label() );
+    VERBOSE( "mov %s, %s", res->label(), lhs->label() );
 
     c.compiler().and_( c.val2reg()[ res ], c.val2reg()[ rhs ] );
     VERBOSE( "and_ %s, %s", res->label(), rhs->label() );
@@ -834,7 +883,7 @@ void CselIRToAsmJitPass::visit_prolog(
     alloc_reg_for_value( *rhs, c );
 
     c.compiler().mov( c.val2reg()[ res ], c.val2reg()[ lhs ] );
-    VERBOSE( "mov %s, %lu", res->label(), lhs->label() );
+    VERBOSE( "mov %s, %s", res->label(), lhs->label() );
 
     c.compiler().or_( c.val2reg()[ res ], c.val2reg()[ rhs ] );
     VERBOSE( "or_ %s, %s", res->label(), rhs->label() );
@@ -878,7 +927,7 @@ void CselIRToAsmJitPass::visit_prolog(
     alloc_reg_for_value( *rhs, c );
 
     c.compiler().mov( c.val2reg()[ res ], c.val2reg()[ lhs ] );
-    VERBOSE( "mov %s, %lu", res->label(), lhs->label() );
+    VERBOSE( "mov %s, %s", res->label(), lhs->label() );
 
     c.compiler().add( c.val2reg()[ res ], c.val2reg()[ rhs ] );
     VERBOSE( "add %s, %s", res->label(), rhs->label() );
@@ -1129,7 +1178,8 @@ void CselIRToAsmJitPass::visit_prolog(
     alloc_reg_for_value( value, c );
 
     c.compiler().mov( c.val2reg()[&value ], asmjit::imm( value.value() ) );
-    VERBOSE( "mov %s, %lu", value.label(), value.value() );
+    VERBOSE(
+        "mov %s, %lu (0x%x)", value.label(), value.value(), value.value() );
 }
 void CselIRToAsmJitPass::visit_epilog(
     BitConstant& value, libcsel_ir::Context& cxt )
@@ -1233,9 +1283,13 @@ libcsel_ir::Value* CselIRToAsmJitPass::execute(
     c.compiler().setArg( 0, out );
     VERBOSE( "setArg( %u, %s )", 0, "out" );
 
-    assert( value.values().size() == 2 );
+    assert( value.values().size() <= 2 );
     assert( libcsel_ir::isa< libcsel_ir::Constant >( value.values()[ 0 ] ) );
-    assert( libcsel_ir::isa< libcsel_ir::Constant >( value.values()[ 1 ] ) );
+    if( value.values().size() > 1 )
+    {
+        assert(
+            libcsel_ir::isa< libcsel_ir::Constant >( value.values()[ 1 ] ) );
+    }
 
     value.iterate( libcsel_ir::Traversal::PREORDER, this, &c );
     value.iterate( libcsel_ir::Traversal::PREORDER, &dump );
