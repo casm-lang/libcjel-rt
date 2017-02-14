@@ -1022,7 +1022,7 @@ void CselIRToAsmJitPass::visit_prolog(
     VERBOSE( "bind 'lbl_true'" );
 
     c.compiler().mov( c.val2reg()[&value ], asmjit::imm( 1 ) );
-    VERBOSE( "mov %s, imm(1)", value.label() );
+    VERBOSE( "mov %s, imm( 1 )", value.label() );
 
     // end if compare
     c.compiler().bind( lbl_exit );
@@ -1178,8 +1178,8 @@ void CselIRToAsmJitPass::visit_prolog(
     alloc_reg_for_value( value, c );
 
     c.compiler().mov( c.val2reg()[&value ], asmjit::imm( value.value() ) );
-    VERBOSE(
-        "mov %s, %lu (0x%x)", value.label(), value.value(), value.value() );
+    VERBOSE( "mov %s, imm( %lu ) [0x%x]", value.label(), value.value(),
+        value.value() );
 }
 void CselIRToAsmJitPass::visit_epilog(
     BitConstant& value, libcsel_ir::Context& cxt )
@@ -1262,7 +1262,7 @@ void CselIRToAsmJitPass::visit_epilog(
 // JiT
 //
 
-libcsel_ir::Value* CselIRToAsmJitPass::execute(
+libcsel_ir::Value CselIRToAsmJitPass::execute(
     libcsel_ir::OperatorInstruction& value, Context& c )
 {
     libcsel_ir::CselIRDumpPass dump;
@@ -1344,10 +1344,10 @@ libcsel_ir::Value* CselIRToAsmJitPass::execute(
     assert( value.type().isBit() );
     assert( value.type().bitsize() <= 8 );
 
-    return libcsel_ir::Constant::Bit( &value.type(), b[ 0 ] );
+    return libcsel_ir::BitConstant( &value.type(), b[ 0 ] );
 }
 
-libcsel_ir::Value* CselIRToAsmJitPass::execute(
+libcsel_ir::Value CselIRToAsmJitPass::execute(
     libcsel_ir::CallInstruction& value, Context& c )
 {
     libcsel_ir::CselIRDumpPass dump;
@@ -1394,6 +1394,9 @@ libcsel_ir::Value* CselIRToAsmJitPass::execute(
                     c.compiler().mov(
                         tmp, x86::ptr( c.val2reg()[ res ], idx ) );
                     c.compiler().mov( x86::ptr( out, idx ), tmp );
+
+                    VERBOSE( "mov( ptr( out, %lu ), ptr( %s, %lu ) )", idx,
+                        res->label(), idx );
                 }
             }
             else if( res->type().isStructure() )
@@ -1413,6 +1416,9 @@ libcsel_ir::Value* CselIRToAsmJitPass::execute(
                         c.compiler().mov(
                             tmp, x86::ptr( c.val2reg()[ res ], idx ) );
                         c.compiler().mov( x86::ptr( out, idx ), tmp );
+
+                        VERBOSE( "mov( ptr( out, %lu ), ptr( %s, %lu ) )", idx,
+                            res->label(), idx );
                     }
 
                     offset += top;
@@ -1477,19 +1483,19 @@ libcsel_ir::Value* CselIRToAsmJitPass::execute(
             }
             else if( type.bitsize() <= 8 )
             {
-                return libcsel_ir::Constant::Bit( &type, b[ 0 ] );
+                return libcsel_ir::BitConstant( &type, b[ 0 ] );
             }
             else if( type.bitsize() <= 16 )
             {
-                return libcsel_ir::Constant::Bit( &type, (u16)b[ 0 ] );
+                return libcsel_ir::BitConstant( &type, (u16)b[ 0 ] );
             }
             else if( type.bitsize() <= 32 )
             {
-                return libcsel_ir::Constant::Bit( &type, (u32)b[ 0 ] );
+                return libcsel_ir::BitConstant( &type, (u32)b[ 0 ] );
             }
             else if( type.bitsize() <= 64 )
             {
-                return libcsel_ir::Constant::Bit( &type, (u64)b[ 0 ] );
+                return libcsel_ir::BitConstant( &type, (u64)b[ 0 ] );
             }
             else
             {
@@ -1505,18 +1511,19 @@ libcsel_ir::Value* CselIRToAsmJitPass::execute(
                     and *value.type().results()[ 0 ]
                             == *value.type().results()[ 1 ] );
 
-            return libcsel_ir::Constant::Structure( &value.type(),
-                { libcsel_ir::Constant::Bit(
+            return libcsel_ir::StructureConstant( value.type(),
+                { new libcsel_ir::BitConstant(
                       value.type().results()[ 0 ], b[ 0 ] ),
-                    libcsel_ir::Constant::Bit(
+                    new libcsel_ir::BitConstant(
                         value.type().results()[ 1 ], b[ 1 ] ) } );
         }
         default:
         {
             libstdhl::Log::error(
                 "unsupported value '%s' to return", value.c_str() );
+
             assert( 0 );
-            return libcsel_ir::Constant::FALSE();
+            return libcsel_ir::VoidConstant();
         }
     }
 }

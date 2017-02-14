@@ -43,7 +43,7 @@ namespace libcsel_rt
     class Instruction : public CselRT
     {
       public:
-        static libcsel_ir::Value* execute( libcsel_ir::Instruction& value );
+        static libcsel_ir::Value execute( libcsel_ir::Instruction& value );
     };
 }
 

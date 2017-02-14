@@ -27,25 +27,72 @@ using namespace libcsel_ir;
 
 TEST( libcsel_rt__instruction, and)
 {
-    auto a = Constant::Bit( Type::Bit( 8 ), 0x18 );
-    auto b = Constant::Bit( Type::Bit( 8 ), 0xff );
+    auto a = BitConstant( 8, 0x18 );
+    auto b = BitConstant( 8, 0xff );
 
-    auto i = AndInstruction( a, b );
+    auto i = AndInstruction( &a, &b );
 
     auto r = libcsel_rt::Instruction::execute( i );
 
-    ASSERT_TRUE( *r == *Constant::Bit( Type::Bit( 8 ), 0x18 ) );
+    ASSERT_TRUE( r == BitConstant( 8, 0x18 ) );
 }
 
 TEST( libcsel_rt__instruction, AddUnsignedInstruction )
 {
     auto t = Type::Bit( 8 );
-    auto a = Constant::Bit( t, 0x11 );
-    auto b = Constant::Bit( t, 0x22 );
-    auto i = AddUnsignedInstruction( a, b );
+
+    auto a = BitConstant( t, 0x11 );
+    auto b = BitConstant( t, 0x22 );
+
+    auto i = AddUnsignedInstruction( &a, &b );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    ASSERT_TRUE( *r == *Constant::Bit( t, 0x33 ) );
+    ASSERT_TRUE( r == BitConstant( t, 0x33 ) );
+}
+
+TEST( libcsel_rt__instruction_example, simple_move_test )
+{
+    auto b_t = Type::Bit( 8 );
+    auto s_t = Type::Structure( { { b_t, "v" }, { b_t, "w" } } );
+
+    auto a_0 = BitConstant( b_t, 0x12 );
+    auto a_1 = BitConstant( b_t, 0x34 );
+    auto a = StructureConstant( *s_t, { &a_0, &a_1 } );
+
+    auto x0 = BitConstant( b_t, 0 );
+    auto x1 = BitConstant( b_t, 1 );
+
+    auto f_t = Type::Relation( { s_t }, { s_t } );
+
+    auto f = Intrinsic( "sym", f_t ); // operation res.v := arg.v; res.w = arg.w
+    auto f_i = f.in( "arg", s_t );
+    auto f_o = f.out( "res", s_t );
+
+    auto scope = ParallelScope( &f );
+    auto stmt = TrivialStatement( &scope );
+
+    auto v_ptr = ExtractInstruction( f_i, &x0 );
+    auto v_ld = LoadInstruction( &v_ptr );
+    stmt.add( &v_ld );
+
+    auto w_ptr = ExtractInstruction( f_i, &x1 );
+    auto w_ld = LoadInstruction( &w_ptr );
+    stmt.add( &w_ld );
+
+    auto res_v_ptr = ExtractInstruction( f_o, &x0 );
+    auto res_w_ptr = ExtractInstruction( f_o, &x1 );
+
+    auto res_v_st = StoreInstruction( &v_ld, &res_v_ptr );
+    auto res_w_st = StoreInstruction( &w_ld, &res_w_ptr );
+
+    stmt.add( &res_v_st );
+    stmt.add( &res_w_st );
+
+    auto m = AllocInstruction( s_t );
+    auto i = CallInstruction( &f, { &a, &m } );
+    auto r = libcsel_rt::Instruction::execute( i );
+
+    EXPECT_TRUE( r == a );
 }
 
 TEST( libcsel_rt__instruction_example, TODO_NAME )
@@ -53,36 +100,65 @@ TEST( libcsel_rt__instruction_example, TODO_NAME )
     auto b_t = Type::Bit( 8 );
     auto s_t = Type::Structure( { { b_t, "v" }, { b_t, "w" } } );
 
-    auto a = Constant::Structure(
-        s_t, { Constant::Bit( b_t, 0x04 ), Constant::Bit( b_t, 0x08 ) } );
+    auto a_0 = BitConstant( b_t, 0x04 );
+    auto a_1 = BitConstant( b_t, 0x08 );
+    auto a = StructureConstant( *s_t, { &a_0, &a_1 } );
 
-    auto x0 = Constant::Bit( b_t, 0 );
-    auto x1 = Constant::Bit( b_t, 1 );
+    auto x0 = BitConstant( b_t, 0 );
+    auto x1 = BitConstant( b_t, 1 );
 
     auto f_t = Type::Relation( { b_t }, { s_t } );
 
-    auto f
-        = new Intrinsic( "sym", f_t ); // operation res := arg.v + arg.w + 0xa0
-    auto f_i = f->in( "arg", s_t );
-    auto f_o = f->out( "res", b_t );
-    auto scope = new ParallelScope( f );
-    auto stmt = new TrivialStatement( scope );
+    auto f = Intrinsic( "sym", f_t ); // operation res := arg.v + arg.w + 0xa0
+    auto f_i = f.in( "arg", s_t );
+    auto f_o = f.out( "res", b_t );
+    auto scope = ParallelScope( &f );
+    auto stmt = TrivialStatement( &scope );
 
-    auto v
-        = stmt->add( new LoadInstruction( new ExtractInstruction( f_i, x0 ) ) );
-    auto w
-        = stmt->add( new LoadInstruction( new ExtractInstruction( f_i, x1 ) ) );
+    auto v_ptr = ExtractInstruction( f_i, &x0 );
+    auto v_ld = LoadInstruction( &v_ptr );
+    auto v = stmt.add( &v_ld );
 
-    auto r0 = stmt->add( new AddUnsignedInstruction( v, w ) );
-    auto r1 = stmt->add(
-        new AddUnsignedInstruction( r0, Constant::Bit( b_t, 0xa0 ) ) );
+    auto w_ptr = ExtractInstruction( f_i, &x1 );
+    auto w_ld = LoadInstruction( &w_ptr );
+    auto w = stmt.add( &w_ld );
 
-    stmt->add( new StoreInstruction( r1, f_o ) );
+    auto r0 = stmt.add( new AddUnsignedInstruction( v, w ) );
 
-    auto i = CallInstruction( f, { a, new AllocInstruction( b_t ) } );
+    auto c0 = BitConstant( b_t, 0xa0 );
+    auto r1 = stmt.add( new AddUnsignedInstruction( r0, &c0 ) );
+
+    stmt.add( new StoreInstruction( r1, f_o ) );
+
+    auto m = AllocInstruction( b_t );
+    auto i = CallInstruction( &f, { &a, &m } );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( *r == *Constant::Bit( b_t, 0x04 + 0x08 + 0xa0 ) );
+    EXPECT_TRUE( r == BitConstant( b_t, 0x04 + 0x08 + 0xa0 ) );
+}
+
+TEST( libcsel_rt__instruction_example, lala )
+{
+    auto b_t = Type::Bit( 8 );
+    auto s_t = Type::Structure( { { b_t, "v" }, { b_t, "w" } } );
+
+    auto a_0 = BitConstant( b_t, 0x04 );
+    auto a_1 = BitConstant( b_t, 0x08 );
+    auto a = StructureConstant( *s_t, { &a_0, &a_1 } );
+
+    auto f_t = Type::Relation( { b_t }, { s_t } );
+
+    auto f = Intrinsic( "sym", f_t );
+    f.in( "arg", s_t );
+    f.out( "res", b_t );
+
+    auto scope = ParallelScope( &f );
+    auto stmt = TrivialStatement( &scope );
+    stmt.add( new NopInstruction() );
+
+    auto m = AllocInstruction( b_t );
+    auto i = CallInstruction( &f, { &a, &m } );
+    auto r = libcsel_rt::Instruction::execute( i );
 }
 
 //

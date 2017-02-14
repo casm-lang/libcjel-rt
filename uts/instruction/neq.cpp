@@ -27,54 +27,72 @@ using namespace libcsel_ir;
 
 TEST( libcsel_rt__instruction_neq, NeqInstruction_true )
 {
-    auto a = Constant::Bit( Type::Bit( 8 ), 0xf0 );
-    auto b = Constant::Bit( Type::Bit( 8 ), 0x0f );
-    auto i = NeqInstruction( a, b );
+    auto a = BitConstant( 8, 0xf0 );
+    auto b = BitConstant( 8, 0x0f );
+
+    auto i = NeqInstruction( &a, &b );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( *r == *Constant::TRUE() );
+    EXPECT_TRUE( r == BitConstant( 1, true ) );
 }
 
 TEST( libcsel_rt__instruction_neq, NeqInstruction_true_zero )
 {
-    auto a = Constant::Bit( Type::Bit( 8 ), 0 );
-    auto b = Constant::Bit( Type::Bit( 8 ), 123 );
-    auto i = NeqInstruction( a, b );
+    auto a = BitConstant( 8, 0 );
+    auto b = BitConstant( 8, 123 );
+
+    auto i = NeqInstruction( &a, &b );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( *r == *Constant::TRUE() );
+    EXPECT_TRUE( r == BitConstant( 1, true ) );
 }
 
 TEST( libcsel_rt__instruction_neq, NeqInstruction_true_zero_64 )
 {
     auto t = Type::Bit( 64 );
 
-    auto a = Constant::Bit( t, 0 );
-    auto b = Constant::Bit( t, 123 );
-    auto i = NeqInstruction( a, b );
+    auto a = BitConstant( t, 0 );
+    auto b = BitConstant( t, 123 );
+
+    auto i = NeqInstruction( &a, &b );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( *r == *Constant::TRUE() );
+    EXPECT_TRUE( r == BitConstant( 1, true ) );
 }
 
 TEST( libcsel_rt__instruction_neq, NeqInstruction_false )
 {
-    auto a = Constant::Bit( Type::Bit( 8 ), 123 );
-    auto b = Constant::Bit( Type::Bit( 8 ), 123 );
-    auto i = NeqInstruction( a, b );
+    auto a = BitConstant( 8, 123 );
+    auto b = BitConstant( 8, 123 );
+
+    auto i = NeqInstruction( &a, &b );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( *r == *Constant::FALSE() );
+    EXPECT_TRUE( r == BitConstant( 1, false ) );
 }
 
 TEST( libcsel_rt__instruction_neq, NeqInstruction_false_zero )
 {
-    auto a = Constant::Bit( Type::Bit( 8 ), 0 );
-    auto b = Constant::Bit( Type::Bit( 8 ), 0 );
-    auto i = NeqInstruction( a, b );
+    auto a = BitConstant( 8, 0 );
+    auto b = BitConstant( 8, 0 );
+
+    auto i = NeqInstruction( &a, &b );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( *r == *Constant::FALSE() );
+    EXPECT_TRUE( r == BitConstant( 1, false ) );
+}
+
+TEST( libcsel_rt__instruction_neq, NeqInstruction_false_zero_64 )
+{
+    auto t = Type::Bit( 64 );
+
+    auto a = BitConstant( t, 123 );
+    auto b = BitConstant( t, 123 );
+
+    auto i = NeqInstruction( &a, &b );
+    auto r = libcsel_rt::Instruction::execute( i );
+
+    EXPECT_TRUE( r == BitConstant( 1, false ) );
 }
 
 //

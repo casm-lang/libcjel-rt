@@ -25,6 +25,7 @@
 
 #include "transform/CselIRToAsmJitPass.h"
 
+#include "../csel-ir/src/Constant.h"
 #include "../csel-ir/src/Instruction.h"
 #include "../csel-ir/src/Value.h"
 
@@ -33,7 +34,7 @@
 
 using namespace libcsel_rt;
 
-libcsel_ir::Value* Instruction::execute( libcsel_ir::Instruction& value )
+libcsel_ir::Value Instruction::execute( libcsel_ir::Instruction& value )
 {
     libstdhl::Log::info( "%s", __FUNCTION__ );
 
@@ -54,9 +55,10 @@ libcsel_ir::Value* Instruction::execute( libcsel_ir::Instruction& value )
     {
         libstdhl::Log::error( "%s:%i: unimplemented instruction to be executed",
             __FILE__, __LINE__ );
+
         assert( 0 );
+        return libcsel_ir::VoidConstant();
     }
-    return 0;
 }
 
 //
