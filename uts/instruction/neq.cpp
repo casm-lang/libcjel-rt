@@ -33,7 +33,7 @@ TEST( libcsel_rt__instruction_neq, NeqInstruction_true )
     auto i = NeqInstruction( &a, &b );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( r == BitConstant( 1, true ) );
+    EXPECT_TRUE( *r == BitConstant( 1, true ) );
 }
 
 TEST( libcsel_rt__instruction_neq, NeqInstruction_true_zero )
@@ -44,7 +44,7 @@ TEST( libcsel_rt__instruction_neq, NeqInstruction_true_zero )
     auto i = NeqInstruction( &a, &b );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( r == BitConstant( 1, true ) );
+    EXPECT_TRUE( *r == BitConstant( 1, true ) );
 }
 
 TEST( libcsel_rt__instruction_neq, NeqInstruction_true_zero_64 )
@@ -57,7 +57,7 @@ TEST( libcsel_rt__instruction_neq, NeqInstruction_true_zero_64 )
     auto i = NeqInstruction( &a, &b );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( r == BitConstant( 1, true ) );
+    EXPECT_TRUE( *r == BitConstant( 1, true ) );
 }
 
 TEST( libcsel_rt__instruction_neq, NeqInstruction_false )
@@ -68,7 +68,7 @@ TEST( libcsel_rt__instruction_neq, NeqInstruction_false )
     auto i = NeqInstruction( &a, &b );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( r == BitConstant( 1, false ) );
+    EXPECT_TRUE( *r == BitConstant( 1, false ) );
 }
 
 TEST( libcsel_rt__instruction_neq, NeqInstruction_false_zero )
@@ -79,7 +79,7 @@ TEST( libcsel_rt__instruction_neq, NeqInstruction_false_zero )
     auto i = NeqInstruction( &a, &b );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( r == BitConstant( 1, false ) );
+    EXPECT_TRUE( *r == BitConstant( 1, false ) );
 }
 
 TEST( libcsel_rt__instruction_neq, NeqInstruction_false_zero_64 )
@@ -92,7 +92,7 @@ TEST( libcsel_rt__instruction_neq, NeqInstruction_false_zero_64 )
     auto i = NeqInstruction( &a, &b );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( r == BitConstant( 1, false ) );
+    EXPECT_TRUE( *r == BitConstant( 1, false ) );
 }
 
 //

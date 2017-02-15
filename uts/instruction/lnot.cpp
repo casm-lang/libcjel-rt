@@ -35,7 +35,7 @@ TEST( libcsel_rt__instruction_lnot, LnotInstruction_false_64 )
 
     auto r = libcsel_rt::Instruction::execute( i );
 
-    ASSERT_TRUE( r == BitConstant( r_t, 0 ) );
+    ASSERT_TRUE( *r == BitConstant( r_t, 0 ) );
 }
 
 TEST( libcsel_rt__instruction_lnot, LnotInstruction_true_64 )
@@ -48,7 +48,7 @@ TEST( libcsel_rt__instruction_lnot, LnotInstruction_true_64 )
 
     auto r = libcsel_rt::Instruction::execute( i );
 
-    ASSERT_TRUE( r == BitConstant( r_t, 1 ) );
+    ASSERT_TRUE( *r == BitConstant( r_t, 1 ) );
 }
 
 TEST( libcsel_rt__instruction_lnot, LnotInstruction_8_true )
@@ -61,7 +61,7 @@ TEST( libcsel_rt__instruction_lnot, LnotInstruction_8_true )
 
     auto r = libcsel_rt::Instruction::execute( i );
 
-    ASSERT_TRUE( r == BitConstant( r_t, 1 ) );
+    ASSERT_TRUE( *r == BitConstant( r_t, 1 ) );
 }
 
 TEST( libcsel_rt__instruction_lnot, LnotInstruction_8_false )
@@ -74,7 +74,7 @@ TEST( libcsel_rt__instruction_lnot, LnotInstruction_8_false )
 
     auto r = libcsel_rt::Instruction::execute( i );
 
-    ASSERT_TRUE( r == BitConstant( r_t, 0 ) );
+    ASSERT_TRUE( *r == BitConstant( r_t, 0 ) );
 }
 
 //

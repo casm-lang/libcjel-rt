@@ -33,10 +33,10 @@ TEST( libcsel_rt__instruction_equ, EquInstruction_Bit7 )
     auto i = EquInstruction( &a, &b );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( r == BitConstant( 1, false ) );
+    EXPECT_TRUE( *r == BitConstant( 1, false ) );
 
-    EXPECT_STREQ( r.name(), "0" );
-    EXPECT_STREQ( r.type().name(), "u1" );
+    EXPECT_STREQ( r->name(), "0" );
+    EXPECT_STREQ( r->type().name(), "u1" );
 }
 
 TEST( libcsel_rt__instruction_equ, EquInstruction_true )
@@ -47,7 +47,7 @@ TEST( libcsel_rt__instruction_equ, EquInstruction_true )
     auto i = EquInstruction( &a, &b );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( r == BitConstant( 1, true ) );
+    EXPECT_TRUE( *r == BitConstant( 1, true ) );
 }
 
 TEST( libcsel_rt__instruction_equ, EquInstruction_true_zero )
@@ -58,7 +58,7 @@ TEST( libcsel_rt__instruction_equ, EquInstruction_true_zero )
     auto i = EquInstruction( &a, &b );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( r == BitConstant( 1, true ) );
+    EXPECT_TRUE( *r == BitConstant( 1, true ) );
 }
 
 TEST( libcsel_rt__instruction_equ, EquInstruction_false )
@@ -69,7 +69,7 @@ TEST( libcsel_rt__instruction_equ, EquInstruction_false )
     auto i = EquInstruction( &a, &b );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( r == BitConstant( 1, false ) );
+    EXPECT_TRUE( *r == BitConstant( 1, false ) );
 }
 
 TEST( libcsel_rt__instruction_equ, EquInstruction_false_zero )
@@ -80,7 +80,7 @@ TEST( libcsel_rt__instruction_equ, EquInstruction_false_zero )
     auto i = EquInstruction( &a, &b );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( r == BitConstant( 1, false ) );
+    EXPECT_TRUE( *r == BitConstant( 1, false ) );
 }
 
 //

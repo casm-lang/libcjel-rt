@@ -32,9 +32,11 @@
 
 #include "CselRT.h"
 
+#include "../csel-ir/src/Value.h"
+
 namespace libcsel_ir
 {
-    class Value;
+    // class Value;
     class Instruction;
 }
 
@@ -43,7 +45,7 @@ namespace libcsel_rt
     class Instruction : public CselRT
     {
       public:
-        static libcsel_ir::Value execute( libcsel_ir::Instruction& value );
+        static libcsel_ir::Value::Ptr execute( libcsel_ir::Instruction& value );
     };
 }
 

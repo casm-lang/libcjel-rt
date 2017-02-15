@@ -34,7 +34,7 @@
 
 using namespace libcsel_rt;
 
-libcsel_ir::Value Instruction::execute( libcsel_ir::Instruction& value )
+libcsel_ir::Value::Ptr Instruction::execute( libcsel_ir::Instruction& value )
 {
     libstdhl::Log::info( "%s", __FUNCTION__ );
 
@@ -57,7 +57,7 @@ libcsel_ir::Value Instruction::execute( libcsel_ir::Instruction& value )
             __FILE__, __LINE__ );
 
         assert( 0 );
-        return libcsel_ir::VoidConstant();
+        return libstdhl::make< libcsel_ir::VoidConstant >();
     }
 }
 

@@ -34,7 +34,7 @@ TEST( libcsel_rt__instruction, and)
 
     auto r = libcsel_rt::Instruction::execute( i );
 
-    ASSERT_TRUE( r == BitConstant( 8, 0x18 ) );
+    ASSERT_TRUE( *r == BitConstant( 8, 0x18 ) );
 }
 
 TEST( libcsel_rt__instruction, AddUnsignedInstruction )
@@ -47,7 +47,7 @@ TEST( libcsel_rt__instruction, AddUnsignedInstruction )
     auto i = AddUnsignedInstruction( &a, &b );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    ASSERT_TRUE( r == BitConstant( t, 0x33 ) );
+    ASSERT_TRUE( *r == BitConstant( t, 0x33 ) );
 }
 
 TEST( libcsel_rt__instruction_example, simple_move_test )
@@ -55,9 +55,9 @@ TEST( libcsel_rt__instruction_example, simple_move_test )
     auto b_t = Type::Bit( 8 );
     auto s_t = Type::Structure( { { b_t, "v" }, { b_t, "w" } } );
 
-    auto a_0 = BitConstant( b_t, 0x12 );
-    auto a_1 = BitConstant( b_t, 0x34 );
-    auto a = StructureConstant( *s_t, { &a_0, &a_1 } );
+    auto a = StructureConstant(
+        *s_t, { libstdhl::make< BitConstant >( b_t, 0x12 ),
+                  libstdhl::make< BitConstant >( b_t, 0x34 ) } );
 
     auto x0 = BitConstant( b_t, 0 );
     auto x1 = BitConstant( b_t, 1 );
@@ -92,7 +92,7 @@ TEST( libcsel_rt__instruction_example, simple_move_test )
     auto i = CallInstruction( &f, { &a, &m } );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( r == a );
+    EXPECT_TRUE( *r == a );
 }
 
 TEST( libcsel_rt__instruction_example, TODO_NAME )
@@ -100,9 +100,9 @@ TEST( libcsel_rt__instruction_example, TODO_NAME )
     auto b_t = Type::Bit( 8 );
     auto s_t = Type::Structure( { { b_t, "v" }, { b_t, "w" } } );
 
-    auto a_0 = BitConstant( b_t, 0x04 );
-    auto a_1 = BitConstant( b_t, 0x08 );
-    auto a = StructureConstant( *s_t, { &a_0, &a_1 } );
+    auto a = StructureConstant(
+        *s_t, { libstdhl::make< BitConstant >( b_t, 0x04 ),
+                  libstdhl::make< BitConstant >( b_t, 0x08 ) } );
 
     auto x0 = BitConstant( b_t, 0 );
     auto x1 = BitConstant( b_t, 1 );
@@ -134,7 +134,7 @@ TEST( libcsel_rt__instruction_example, TODO_NAME )
     auto i = CallInstruction( &f, { &a, &m } );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( r == BitConstant( b_t, 0x04 + 0x08 + 0xa0 ) );
+    EXPECT_TRUE( *r == BitConstant( b_t, 0x04 + 0x08 + 0xa0 ) );
 }
 
 TEST( libcsel_rt__instruction_example, lala )
@@ -142,9 +142,9 @@ TEST( libcsel_rt__instruction_example, lala )
     auto b_t = Type::Bit( 8 );
     auto s_t = Type::Structure( { { b_t, "v" }, { b_t, "w" } } );
 
-    auto a_0 = BitConstant( b_t, 0x04 );
-    auto a_1 = BitConstant( b_t, 0x08 );
-    auto a = StructureConstant( *s_t, { &a_0, &a_1 } );
+    auto a = StructureConstant(
+        *s_t, { libstdhl::make< BitConstant >( b_t, 0x04 ),
+                  libstdhl::make< BitConstant >( b_t, 0x08 ) } );
 
     auto f_t = Type::Relation( { b_t }, { s_t } );
 

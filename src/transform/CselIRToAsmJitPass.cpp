@@ -1211,8 +1211,8 @@ void CselIRToAsmJitPass::visit_prolog(
     {
         alloc_reg_for_value( *v, c );
 
-        c.compiler().mov(
-            x86::ptr( c.val2reg()[&value ], byte_offset ), c.val2reg()[ v ] );
+        c.compiler().mov( x86::ptr( c.val2reg()[&value ], byte_offset ),
+            c.val2reg()[ v.get() ] );
         VERBOSE(
             "mov ptr( %s, %u), %s", value.label(), byte_offset, v->label() );
 
@@ -1262,7 +1262,7 @@ void CselIRToAsmJitPass::visit_epilog(
 // JiT
 //
 
-libcsel_ir::Value CselIRToAsmJitPass::execute(
+libcsel_ir::Value::Ptr CselIRToAsmJitPass::execute(
     libcsel_ir::OperatorInstruction& value, Context& c )
 {
     libcsel_ir::CselIRDumpPass dump;
@@ -1344,10 +1344,10 @@ libcsel_ir::Value CselIRToAsmJitPass::execute(
     assert( value.type().isBit() );
     assert( value.type().bitsize() <= 8 );
 
-    return libcsel_ir::BitConstant( &value.type(), b[ 0 ] );
+    return libstdhl::make< libcsel_ir::BitConstant >( &value.type(), b[ 0 ] );
 }
 
-libcsel_ir::Value CselIRToAsmJitPass::execute(
+libcsel_ir::Value::Ptr CselIRToAsmJitPass::execute(
     libcsel_ir::CallInstruction& value, Context& c )
 {
     libcsel_ir::CselIRDumpPass dump;
@@ -1483,19 +1483,23 @@ libcsel_ir::Value CselIRToAsmJitPass::execute(
             }
             else if( type.bitsize() <= 8 )
             {
-                return libcsel_ir::BitConstant( &type, b[ 0 ] );
+                return libstdhl::make< libcsel_ir::BitConstant >(
+                    &type, b[ 0 ] );
             }
             else if( type.bitsize() <= 16 )
             {
-                return libcsel_ir::BitConstant( &type, (u16)b[ 0 ] );
+                return libstdhl::make< libcsel_ir::BitConstant >(
+                    &type, (u16)b[ 0 ] );
             }
             else if( type.bitsize() <= 32 )
             {
-                return libcsel_ir::BitConstant( &type, (u32)b[ 0 ] );
+                return libstdhl::make< libcsel_ir::BitConstant >(
+                    &type, (u32)b[ 0 ] );
             }
             else if( type.bitsize() <= 64 )
             {
-                return libcsel_ir::BitConstant( &type, (u64)b[ 0 ] );
+                return libstdhl::make< libcsel_ir::BitConstant >(
+                    &type, (u64)b[ 0 ] );
             }
             else
             {
@@ -1511,11 +1515,15 @@ libcsel_ir::Value CselIRToAsmJitPass::execute(
                     and *value.type().results()[ 0 ]
                             == *value.type().results()[ 1 ] );
 
-            return libcsel_ir::StructureConstant( value.type(),
-                { new libcsel_ir::BitConstant(
-                      value.type().results()[ 0 ], b[ 0 ] ),
-                    new libcsel_ir::BitConstant(
-                        value.type().results()[ 1 ], b[ 1 ] ) } );
+            const std::vector< libcsel_ir::Constant::Ptr > el_args
+                = { libstdhl::make< libcsel_ir::BitConstant >(
+                        value.type().results()[ 0 ], b[ 0 ] ),
+                    libstdhl::make< libcsel_ir::BitConstant >(
+                        value.type().results()[ 1 ], b[ 1 ] ) };
+
+            return std::static_pointer_cast< libcsel_ir::Value >(
+                libstdhl::make< libcsel_ir::StructureConstant >(
+                    value.type(), el_args ) );
         }
         default:
         {
@@ -1523,7 +1531,7 @@ libcsel_ir::Value CselIRToAsmJitPass::execute(
                 "unsupported value '%s' to return", value.c_str() );
 
             assert( 0 );
-            return libcsel_ir::VoidConstant();
+            return libstdhl::make< libcsel_ir::VoidConstant >();
         }
     }
 }
