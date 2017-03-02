@@ -95,10 +95,10 @@ add_executable( ${TARGET}-check
 
 target_link_libraries( ${TARGET}-check
   ${TARGET}
-  pthread
-  stdhl
-  pass
   csel-ir
+  pass
+  stdhl
+  pthread
 )
 
 

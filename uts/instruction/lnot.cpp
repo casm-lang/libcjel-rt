@@ -27,54 +27,54 @@ using namespace libcsel_ir;
 
 TEST( libcsel_rt__instruction_lnot, LnotInstruction_false_64 )
 {
-    auto a_t = Type::Bit( 64 );
-    auto r_t = Type::Bit( 1 );
+    auto a_t = libstdhl::make< BitType >( 64 );
+    auto r_t = libstdhl::make< BitType >( 1 );
 
-    auto a = BitConstant( a_t, 0xdeadbeef );
-    auto i = LnotInstruction( &a );
+    auto a = libstdhl::make< BitConstant >( a_t, 0xdeadbeef );
+    auto i = LnotInstruction( a );
 
     auto r = libcsel_rt::Instruction::execute( i );
 
-    ASSERT_TRUE( *r == BitConstant( r_t, 0 ) );
+    ASSERT_TRUE( r == BitConstant( r_t, 0 ) );
 }
 
 TEST( libcsel_rt__instruction_lnot, LnotInstruction_true_64 )
 {
-    auto a_t = Type::Bit( 64 );
-    auto r_t = Type::Bit( 1 );
+    auto a_t = libstdhl::make< BitType >( 64 );
+    auto r_t = libstdhl::make< BitType >( 1 );
 
-    auto a = BitConstant( a_t, 0 );
-    auto i = LnotInstruction( &a );
+    auto a = libstdhl::make< BitConstant >( a_t, 0 );
+    auto i = LnotInstruction( a );
 
     auto r = libcsel_rt::Instruction::execute( i );
 
-    ASSERT_TRUE( *r == BitConstant( r_t, 1 ) );
+    ASSERT_TRUE( r == BitConstant( r_t, 1 ) );
 }
 
 TEST( libcsel_rt__instruction_lnot, LnotInstruction_8_true )
 {
-    auto a_t = Type::Bit( 8 );
-    auto r_t = Type::Bit( 1 );
+    auto a_t = libstdhl::make< BitType >( 8 );
+    auto r_t = libstdhl::make< BitType >( 1 );
 
-    auto a = BitConstant( a_t, 0 );
-    auto i = LnotInstruction( &a );
+    auto a = libstdhl::make< BitConstant >( a_t, 0 );
+    auto i = LnotInstruction( a );
 
     auto r = libcsel_rt::Instruction::execute( i );
 
-    ASSERT_TRUE( *r == BitConstant( r_t, 1 ) );
+    ASSERT_TRUE( r == BitConstant( r_t, 1 ) );
 }
 
 TEST( libcsel_rt__instruction_lnot, LnotInstruction_8_false )
 {
-    auto a_t = Type::Bit( 64 );
-    auto r_t = Type::Bit( 1 );
+    auto a_t = libstdhl::make< BitType >( 64 );
+    auto r_t = libstdhl::make< BitType >( 1 );
 
-    auto a = BitConstant( a_t, 0xdeadbeef );
-    auto i = LnotInstruction( &a );
+    auto a = libstdhl::make< BitConstant >( a_t, 0xdeadbeef );
+    auto i = LnotInstruction( a );
 
     auto r = libcsel_rt::Instruction::execute( i );
 
-    ASSERT_TRUE( *r == BitConstant( r_t, 0 ) );
+    ASSERT_TRUE( r == BitConstant( r_t, 0 ) );
 }
 
 //

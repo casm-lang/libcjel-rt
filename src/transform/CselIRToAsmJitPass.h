@@ -26,9 +26,17 @@
 
 #include "libpass.h"
 
+#include "../asmjit/src/asmjit/asmjit.h"
+
 #include "../csel-ir/src/Visitor.h"
 
-#include "../asmjit/src/asmjit/asmjit.h"
+namespace libcsel_ir
+{
+    class Value;
+    class Constant;
+    class CallInstruction;
+    class OperatorInstruction;
+}
 
 namespace libcsel_rt
 {
@@ -127,9 +135,9 @@ namespace libcsel_rt
                 m_val2mem.clear();
             }
 
-            u1 hasCallable( libcsel_ir::Value& value )
+            u1 hasCallable( libcsel_ir::Value* value )
             {
-                return m_callables.find( &value ) != m_callables.end();
+                return m_callables.find( value ) != m_callables.end();
             }
 
             Callable& callable( libcsel_ir::Value* value = nullptr )
@@ -181,10 +189,10 @@ namespace libcsel_rt
         void alloc_reg_for_value( libcsel_ir::Value& value, Context& c );
 
       public:
-        libcsel_ir::Value::Ptr execute(
+        libcsel_ir::Constant execute(
             libcsel_ir::OperatorInstruction& value, Context& c );
 
-        libcsel_ir::Value::Ptr execute(
+        libcsel_ir::Constant execute(
             libcsel_ir::CallInstruction& value, Context& c );
     };
 }

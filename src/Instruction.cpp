@@ -32,24 +32,23 @@
 #include "../stdhl/cpp/Default.h"
 #include "../stdhl/cpp/Log.h"
 
-using namespace libcsel_rt;
+using namespace libcsel_ir;
 
-libcsel_ir::Value::Ptr Instruction::execute( libcsel_ir::Instruction& value )
+libcsel_ir::Constant libcsel_rt::Instruction::execute(
+    libcsel_ir::Instruction& value )
 {
     libstdhl::Log::info( "%s", __FUNCTION__ );
 
     libcsel_rt::CselIRToAsmJitPass::Context c;
     libcsel_rt::CselIRToAsmJitPass x;
 
-    if( libcsel_ir::isa< libcsel_ir::CallInstruction >( value ) )
+    if( isa< CallInstruction >( value ) )
     {
-        return x.execute(
-            static_cast< libcsel_ir::CallInstruction& >( value ), c );
+        return x.execute( static_cast< CallInstruction& >( value ), c );
     }
-    else if( libcsel_ir::isa< libcsel_ir::OperatorInstruction >( value ) )
+    else if( isa< OperatorInstruction >( value ) )
     {
-        return x.execute(
-            static_cast< libcsel_ir::OperatorInstruction& >( value ), c );
+        return x.execute( static_cast< OperatorInstruction& >( value ), c );
     }
     else
     {
@@ -57,7 +56,7 @@ libcsel_ir::Value::Ptr Instruction::execute( libcsel_ir::Instruction& value )
             __FILE__, __LINE__ );
 
         assert( 0 );
-        return libstdhl::make< libcsel_ir::VoidConstant >();
+        return VoidConstant();
     }
 }
 

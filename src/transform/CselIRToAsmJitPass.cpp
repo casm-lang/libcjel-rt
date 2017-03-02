@@ -23,6 +23,11 @@
 
 #include "CselIRToAsmJitPass.h"
 
+#include "../csel-ir/src/Constant.h"
+#include "../csel-ir/src/Function.h"
+#include "../csel-ir/src/Instruction.h"
+#include "../csel-ir/src/Intrinsic.h"
+#include "../csel-ir/src/Value.h"
 #include "../csel-ir/src/analyze/CselIRDumpPass.h"
 
 #include "../stdhl/cpp/Default.h"
@@ -48,15 +53,15 @@ bool CselIRToAsmJitPass::run( libpass::PassResult& pr )
 #define TRACE( FMT, ARGS... )                                                  \
     libstdhl::Log::info(                                                       \
         "Asmjit:%i: %p: %s | %s | '%s' | size=%lu | @ %p" FMT, __LINE__,       \
-        &value, value.name(), value.label(), value.type().name(),              \
-        value.type().bitsize(), cxt, ##ARGS )
+        &value, value.name().c_str(), value.label().c_str(),                   \
+        value.type().name().c_str(), value.type().bitsize(), cxt, ##ARGS )
 #else
 #define TRACE( FMT, ARGS... )
 #endif
 
 #define VERBOSE( FMT, ARGS... )                                                \
-    libstdhl::Log::info( "[%s %s] %s = " FMT, value.name(),                    \
-        value.type().name(), value.label(), ##ARGS )
+    libstdhl::Log::info( "[%s %s] %s = " FMT, value.name().c_str(),            \
+        value.type().name().c_str(), value.label().c_str(), ##ARGS )
 
 #define FIXME()                                                                \
     {                                                                          \
@@ -65,7 +70,7 @@ bool CselIRToAsmJitPass::run( libpass::PassResult& pr )
         assert( 0 );                                                           \
     }
 
-static u32 calc_byte_size( libcsel_ir::Type& type )
+static u32 calc_byte_size( const libcsel_ir::Type& type )
 {
     switch( type.id() )
     {
@@ -111,7 +116,7 @@ static u32 calc_byte_size( libcsel_ir::Type& type )
         {
             libstdhl::Log::error(
                 "unsupported type '%s' to calculate byte_size!",
-                type.description() );
+                type.description().c_str() );
             assert( 0 );
             return 0;
         }
@@ -120,7 +125,7 @@ static u32 calc_byte_size( libcsel_ir::Type& type )
 
 void CselIRToAsmJitPass::alloc_reg_for_value( Value& value, Context& c )
 {
-    Type& type = value.type();
+    auto type = value.type();
 
     if( c.val2reg().find( &value ) != c.val2reg().end() )
     {
@@ -132,11 +137,12 @@ void CselIRToAsmJitPass::alloc_reg_for_value( Value& value, Context& c )
     {
         Context::Callable& func = c.callable();
 
-        c.val2reg()[&value ] = c.compiler().newUIntPtr( value.label() );
+        c.val2reg()[&value ] = c.compiler().newUIntPtr( value.label().c_str() );
         VERBOSE( "newUIntPtr" );
 
         c.compiler().setArg( func.argsize( 1 ) - 1, c.val2reg()[&value ] );
-        VERBOSE( "setArg( %u, %s )", func.argsize() - 1, value.label() );
+        VERBOSE(
+            "setArg( %u, %s )", func.argsize() - 1, value.label().c_str() );
 
         return;
     }
@@ -145,13 +151,13 @@ void CselIRToAsmJitPass::alloc_reg_for_value( Value& value, Context& c )
     {
         u32 byte_size = calc_byte_size( type );
 
-        c.val2reg()[&value ] = c.compiler().newUIntPtr( value.label() );
+        c.val2reg()[&value ] = c.compiler().newUIntPtr( value.label().c_str() );
         VERBOSE( "newUIntPtr" );
 
         c.compiler().lea(
             c.val2reg()[&value ], c.compiler().newStack( byte_size, 4 ) );
-        VERBOSE(
-            "lea %s, newStack( %u, 4 ) ;; alloc", value.label(), byte_size );
+        VERBOSE( "lea %s, newStack( %u, 4 ) ;; alloc", value.label().c_str(),
+            byte_size );
 
         X86Gp tmp = c.compiler().newU8( "tmp" );
         c.compiler().mov( tmp, asmjit::imm( 0 ) );
@@ -167,7 +173,8 @@ void CselIRToAsmJitPass::alloc_reg_for_value( Value& value, Context& c )
             {
                 idx = i + offset;
                 c.compiler().mov( x86::ptr( c.val2reg()[&value ], idx ), tmp );
-                VERBOSE( "mov ptr( %s, %lu ), imm( 0 )", value.label(), idx );
+                VERBOSE( "mov ptr( %s, %lu ), imm( 0 )", value.label().c_str(),
+                    idx );
             }
 
             offset += top;
@@ -185,22 +192,26 @@ void CselIRToAsmJitPass::alloc_reg_for_value( Value& value, Context& c )
             }
             else if( type.bitsize() <= 8 )
             {
-                c.val2reg()[&value ] = c.compiler().newU8( value.label() );
+                c.val2reg()[&value ]
+                    = c.compiler().newU8( value.label().c_str() );
                 VERBOSE( "newU8" );
             }
             else if( type.bitsize() <= 16 )
             {
-                c.val2reg()[&value ] = c.compiler().newU16( value.label() );
+                c.val2reg()[&value ]
+                    = c.compiler().newU16( value.label().c_str() );
                 VERBOSE( "newU16" );
             }
             else if( type.bitsize() <= 32 )
             {
-                c.val2reg()[&value ] = c.compiler().newU32( value.label() );
+                c.val2reg()[&value ]
+                    = c.compiler().newU32( value.label().c_str() );
                 VERBOSE( "newU32" );
             }
             else if( type.bitsize() <= 64 )
             {
-                c.val2reg()[&value ] = c.compiler().newU64( value.label() );
+                c.val2reg()[&value ]
+                    = c.compiler().newU64( value.label().c_str() );
                 VERBOSE( "newU64" );
             }
             else
@@ -212,7 +223,8 @@ void CselIRToAsmJitPass::alloc_reg_for_value( Value& value, Context& c )
         case Type::VECTOR: // fall-through
         case Type::STRUCTURE:
         {
-            c.val2reg()[&value ] = c.compiler().newUIntPtr( value.label() );
+            c.val2reg()[&value ]
+                = c.compiler().newUIntPtr( value.label().c_str() );
             VERBOSE( "newUIntPtr" );
             break;
         }
@@ -220,7 +232,7 @@ void CselIRToAsmJitPass::alloc_reg_for_value( Value& value, Context& c )
         {
             libstdhl::Log::error(
                 "unsupported type '%s' to allocate a register!",
-                type.description() );
+                type.description().c_str() );
             assert( 0 );
             break;
         }
@@ -252,7 +264,7 @@ void CselIRToAsmJitPass::alloc_reg_for_value( Value& value, Context& c )
                 libstdhl::Log::error(
                     "unsupported constant value of type '%s' to allocate a "
                     "register!",
-                    type.description() );
+                    type.description().c_str() );
                 assert( 0 );
                 break;
             }
@@ -314,15 +326,15 @@ void CselIRToAsmJitPass::visit_interlog(
     Context::Callable& func = c.callable();
 
     c.compiler().addFunc( func.funcsig() );
-    VERBOSE( "addFunc( %s )", value.name() );
+    VERBOSE( "addFunc( %s )", value.name().c_str() );
 
-    for( auto param : value.inParameters() )
+    for( auto param : value.inputs() )
     {
         assert( isa< Reference >( param ) );
         alloc_reg_for_value( *param, c );
     }
 
-    for( auto param : value.outParameters() )
+    for( auto param : value.outputs() )
     {
         assert( isa< Reference >( param ) );
         alloc_reg_for_value( *param, c );
@@ -352,7 +364,7 @@ void CselIRToAsmJitPass::visit_epilog(
         "~~~{.asm}\n"
         "%s"
         "~~~\n",
-        value.name(), func_ptr, c.logger().getString() );
+        value.name().c_str(), func_ptr, c.logger().getString() );
 
     if( err )
     {
@@ -522,14 +534,14 @@ void CselIRToAsmJitPass::visit_prolog(
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
 
-    assert( c.hasCallable( value.callee() ) );
-    Context::Callable& callee = c.callable( &value.callee() );
+    assert( c.hasCallable( value.callee().get() ) );
+    Context::Callable& callee = c.callable( value.callee().get() );
 
     alloc_reg_for_value( value, c );
 
-    for( auto v : value.values() )
+    for( auto v : value.operands() )
     {
-        if( v == &value.callee() )
+        if( *v == *value.callee() )
         {
             continue;
         }
@@ -537,19 +549,19 @@ void CselIRToAsmJitPass::visit_prolog(
         alloc_reg_for_value( *v, c );
     }
 
-    X86Gp fp = c.compiler().newIntPtr( value.callee().label() );
+    X86Gp fp = c.compiler().newIntPtr( value.callee()->label().c_str() );
     c.compiler().mov( fp, imm_ptr( callee.funcptr() ) );
     CCFuncCall* call = c.compiler().call( fp, callee.funcsig() );
 
-    VERBOSE(
-        "call( %s ) --> %lu", value.callee().label(), (u64)callee.funcptr() );
+    VERBOSE( "call( %s ) --> %lu", value.callee()->label().c_str(),
+        (u64)callee.funcptr() );
 
     u32 i = 0;
-    for( i = 1; i < value.values().size(); i++ )
+    for( i = 1; i < value.operands().size(); i++ )
     {
-        call->setArg( ( i - 1 ), c.val2reg()[ value.values()[ i ] ] );
-        VERBOSE(
-            "call->setArg( %u, %s )", i - 1, value.values()[ i ]->label() );
+        call->setArg( ( i - 1 ), c.val2reg()[ value.operands()[ i ].get() ] );
+        VERBOSE( "call->setArg( %u, %s )", i - 1,
+            value.operands()[ i ]->label().c_str() );
     }
 }
 void CselIRToAsmJitPass::visit_epilog(
@@ -656,20 +668,23 @@ void CselIRToAsmJitPass::visit_prolog(
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
 
-    Value* base = value.value( 0 );
-    Value* offset = value.value( 1 );
+    auto base = value.operand( 0 );
+    auto offset = value.operand( 1 );
 
     if( isa< Reference >( base ) and base->type().isStructure() )
     {
         assert( isa< BitConstant >( offset ) );
         BitConstant& index = static_cast< BitConstant& >( *offset );
 
-        assert( index.value() < base->type().results().size() );
+        assert( index.value()[ 0 ]
+                < base->type().results().size() ); // PPA: FIXME: use real
+                                                   // operator< for: Type < u64
 
         u32 byte_offset = 0;
         u32 byte_size = 0;
         u32 bit_size = 0;
-        for( u32 i = 0; i < index.value(); i++ )
+        for( u32 i = 0; i < index.value()[ 0 ];
+             i++ ) // PPA: FIXME: check if value is not greater one word!
         {
             bit_size = base->type().results()[ i ]->bitsize();
             byte_size = bit_size / 8 + ( ( bit_size % 8 ) % 2 );
@@ -678,10 +693,14 @@ void CselIRToAsmJitPass::visit_prolog(
         // libstdhl::Log::info( "byte size = %lu, %lu", byte_size, byte_offset
         // );
 
-        c.val2mem()[&value ] = x86::ptr( c.val2reg()[ base ], byte_offset );
-        VERBOSE( "ptr( %s, %lu ) [ '%s' @ %lu --> bs = %lu ]", base->label(),
-            byte_offset, base->type().name(), index.value(),
-            base->type().results()[ index.value() ]->bitsize() );
+        c.val2mem()[&value ]
+            = x86::ptr( c.val2reg()[ base.get() ], byte_offset );
+        VERBOSE( "ptr( %s, %lu ) [ '%s' @ %s --> bs = %lu ]",
+            base->label().c_str(), byte_offset, base->type().name().c_str(),
+            index.name().c_str(),
+            base->type()
+                .results()[ index.value()[ 0 ] ]
+                ->bitsize() ); // PPA: FIXME: index access!!!
     }
     else
     {
@@ -705,12 +724,12 @@ void CselIRToAsmJitPass::visit_prolog(
 
     alloc_reg_for_value( value, c );
 
-    Value* src = value.value( 0 );
+    auto src = value.operand( 0 ).get();
 
     if( isa< ExtractInstruction >( src ) )
     {
         c.compiler().mov( c.val2reg()[&value ], c.val2mem()[ src ] );
-        VERBOSE( "mov %s, %s", value.label(), src->label() );
+        VERBOSE( "mov %s, %s", value.label().c_str(), src->label().c_str() );
     }
     else
     {
@@ -732,22 +751,23 @@ void CselIRToAsmJitPass::visit_prolog(
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
 
-    Value* src = value.value( 0 );
-    Value* dst = value.value( 1 );
+    auto src = value.operand( 0 ).get();
+    auto dst = value.operand( 1 ).get();
 
     alloc_reg_for_value( *src, c );
 
     if( isa< ExtractInstruction >( dst ) )
     {
         c.compiler().mov( c.val2mem()[ dst ], c.val2reg()[ src ] );
-        VERBOSE( "mov %s, %s (%s)", dst->label(), src->label(), src->name() );
+        VERBOSE( "mov %s, %s (%s)", dst->label().c_str(), src->label().c_str(),
+            src->name().c_str() );
     }
     else if( isa< Reference >( dst ) and dst->type().isBit() )
     {
         c.compiler().mov(
             x86::ptr( c.val2reg()[ dst ], 0 ), c.val2reg()[ src ] );
-        VERBOSE(
-            "mov ptr( %s ), %s (%s)", dst->label(), src->label(), src->name() );
+        VERBOSE( "mov ptr( %s ), %s (%s)", dst->label().c_str(),
+            src->label().c_str(), src->name().c_str() );
     }
     else
     {
@@ -769,17 +789,17 @@ void CselIRToAsmJitPass::visit_prolog(
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
 
-    Value* res = &value;
-    Value* lhs = value.value( 0 );
+    auto res = &value;
+    auto lhs = value.operand( 0 ).get();
 
     alloc_reg_for_value( *res, c );
     alloc_reg_for_value( *lhs, c );
 
     c.compiler().mov( c.val2reg()[ res ], c.val2reg()[ lhs ] );
-    VERBOSE( "mov %s, %s", res->label(), lhs->label() );
+    VERBOSE( "mov %s, %s", res->label().c_str(), lhs->label().c_str() );
 
     c.compiler().not_( c.val2reg()[ res ] );
-    VERBOSE( "not_ %s", res->label() );
+    VERBOSE( "not_ %s", res->label().c_str() );
 }
 void CselIRToAsmJitPass::visit_epilog(
     NotInstruction& value, libcsel_ir::Context& cxt )
@@ -796,8 +816,8 @@ void CselIRToAsmJitPass::visit_prolog(
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
 
-    Value* res = &value;
-    Value* lhs = value.value( 0 );
+    auto res = &value;
+    auto lhs = value.operand( 0 ).get();
 
     Label lbl_true = c.compiler().newLabel();
     Label lbl_exit = c.compiler().newLabel();
@@ -806,7 +826,7 @@ void CselIRToAsmJitPass::visit_prolog(
     alloc_reg_for_value( *lhs, c );
 
     c.compiler().cmp( c.val2reg()[ lhs ], asmjit::imm( 0 ) );
-    VERBOSE( "cmp %s, imm( 0 )", lhs->label() );
+    VERBOSE( "cmp %s, imm( 0 )", lhs->label().c_str() );
 
     // jump if equal to true path, else cont with false path
     c.compiler().je( lbl_true );
@@ -814,7 +834,7 @@ void CselIRToAsmJitPass::visit_prolog(
 
     // false path
     c.compiler().mov( c.val2reg()[&value ], asmjit::imm( 0 ) );
-    VERBOSE( "mov %s, imm( 0 )", value.label() );
+    VERBOSE( "mov %s, imm( 0 )", value.label().c_str() );
 
     c.compiler().jmp( lbl_exit );
     VERBOSE( "jmp 'lbl_exit'" );
@@ -824,7 +844,7 @@ void CselIRToAsmJitPass::visit_prolog(
     VERBOSE( "bind 'lbl_true'" );
 
     c.compiler().mov( c.val2reg()[&value ], asmjit::imm( 1 ) );
-    VERBOSE( "mov %s, imm( 1 )", value.label() );
+    VERBOSE( "mov %s, imm( 1 )", value.label().c_str() );
 
     // end if compare
     c.compiler().bind( lbl_exit );
@@ -845,19 +865,19 @@ void CselIRToAsmJitPass::visit_prolog(
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
 
-    Value* res = &value;
-    Value* lhs = value.value( 0 );
-    Value* rhs = value.value( 1 );
+    auto res = &value;
+    auto lhs = value.operand( 0 ).get();
+    auto rhs = value.operand( 1 ).get();
 
     alloc_reg_for_value( *res, c );
     alloc_reg_for_value( *lhs, c );
     alloc_reg_for_value( *rhs, c );
 
     c.compiler().mov( c.val2reg()[ res ], c.val2reg()[ lhs ] );
-    VERBOSE( "mov %s, %s", res->label(), lhs->label() );
+    VERBOSE( "mov %s, %s", res->label().c_str(), lhs->label().c_str() );
 
     c.compiler().and_( c.val2reg()[ res ], c.val2reg()[ rhs ] );
-    VERBOSE( "and_ %s, %s", res->label(), rhs->label() );
+    VERBOSE( "and_ %s, %s", res->label().c_str(), rhs->label().c_str() );
 }
 void CselIRToAsmJitPass::visit_epilog(
     AndInstruction& value, libcsel_ir::Context& cxt )
@@ -874,19 +894,19 @@ void CselIRToAsmJitPass::visit_prolog(
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
 
-    Value* res = &value;
-    Value* lhs = value.value( 0 );
-    Value* rhs = value.value( 1 );
+    const auto res = &value;
+    const auto lhs = value.operand( 0 ).get();
+    const auto rhs = value.operand( 1 ).get();
 
     alloc_reg_for_value( *res, c );
     alloc_reg_for_value( *lhs, c );
     alloc_reg_for_value( *rhs, c );
 
     c.compiler().mov( c.val2reg()[ res ], c.val2reg()[ lhs ] );
-    VERBOSE( "mov %s, %s", res->label(), lhs->label() );
+    VERBOSE( "mov %s, %s", res->label().c_str(), lhs->label().c_str() );
 
     c.compiler().or_( c.val2reg()[ res ], c.val2reg()[ rhs ] );
-    VERBOSE( "or_ %s, %s", res->label(), rhs->label() );
+    VERBOSE( "or_ %s, %s", res->label().c_str(), rhs->label().c_str() );
 }
 void CselIRToAsmJitPass::visit_epilog(
     OrInstruction& value, libcsel_ir::Context& cxt )
@@ -918,19 +938,19 @@ void CselIRToAsmJitPass::visit_prolog(
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
 
-    Value* res = &value;
-    Value* lhs = value.value( 0 );
-    Value* rhs = value.value( 1 );
+    const auto res = &value;
+    const auto lhs = value.operand( 0 ).get();
+    const auto rhs = value.operand( 1 ).get();
 
     alloc_reg_for_value( *res, c );
     alloc_reg_for_value( *lhs, c );
     alloc_reg_for_value( *rhs, c );
 
     c.compiler().mov( c.val2reg()[ res ], c.val2reg()[ lhs ] );
-    VERBOSE( "mov %s, %s", res->label(), lhs->label() );
+    VERBOSE( "mov %s, %s", res->label().c_str(), lhs->label().c_str() );
 
     c.compiler().add( c.val2reg()[ res ], c.val2reg()[ rhs ] );
-    VERBOSE( "add %s, %s", res->label(), rhs->label() );
+    VERBOSE( "add %s, %s", res->label().c_str(), rhs->label().c_str() );
 }
 void CselIRToAsmJitPass::visit_epilog(
     AddUnsignedInstruction& value, libcsel_ir::Context& cxt )
@@ -992,9 +1012,9 @@ void CselIRToAsmJitPass::visit_prolog(
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
 
-    Value* res = &value;
-    Value* lhs = value.value( 0 );
-    Value* rhs = value.value( 1 );
+    const auto res = &value;
+    const auto lhs = value.operand( 0 ).get();
+    const auto rhs = value.operand( 1 ).get();
 
     Label lbl_true = c.compiler().newLabel();
     Label lbl_exit = c.compiler().newLabel();
@@ -1004,7 +1024,7 @@ void CselIRToAsmJitPass::visit_prolog(
     alloc_reg_for_value( *rhs, c );
 
     c.compiler().cmp( c.val2reg()[ lhs ], c.val2reg()[ rhs ] );
-    VERBOSE( "cmp %s, %s", lhs->label(), rhs->label() );
+    VERBOSE( "cmp %s, %s", lhs->label().c_str(), rhs->label().c_str() );
 
     // jump if equal to true path, else cont with false path
     c.compiler().je( lbl_true );
@@ -1012,7 +1032,7 @@ void CselIRToAsmJitPass::visit_prolog(
 
     // false path
     c.compiler().mov( c.val2reg()[&value ], asmjit::imm( 0 ) );
-    VERBOSE( "mov %s, imm( 0 )", value.label() );
+    VERBOSE( "mov %s, imm( 0 )", value.label().c_str() );
 
     c.compiler().jmp( lbl_exit );
     VERBOSE( "jmp 'lbl_exit'" );
@@ -1022,7 +1042,7 @@ void CselIRToAsmJitPass::visit_prolog(
     VERBOSE( "bind 'lbl_true'" );
 
     c.compiler().mov( c.val2reg()[&value ], asmjit::imm( 1 ) );
-    VERBOSE( "mov %s, imm( 1 )", value.label() );
+    VERBOSE( "mov %s, imm( 1 )", value.label().c_str() );
 
     // end if compare
     c.compiler().bind( lbl_exit );
@@ -1043,9 +1063,9 @@ void CselIRToAsmJitPass::visit_prolog(
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
 
-    Value* res = &value;
-    Value* lhs = value.value( 0 );
-    Value* rhs = value.value( 1 );
+    const auto res = &value;
+    const auto lhs = value.operand( 0 ).get();
+    const auto rhs = value.operand( 1 ).get();
 
     Label lbl_true = c.compiler().newLabel();
     Label lbl_exit = c.compiler().newLabel();
@@ -1055,7 +1075,7 @@ void CselIRToAsmJitPass::visit_prolog(
     alloc_reg_for_value( *rhs, c );
 
     c.compiler().cmp( c.val2reg()[ lhs ], c.val2reg()[ rhs ] );
-    VERBOSE( "cmp %s, %s", lhs->label(), rhs->label() );
+    VERBOSE( "cmp %s, %s", lhs->label().c_str(), rhs->label().c_str() );
 
     // jump if not equal to true path, else cont with false path
     c.compiler().jne( lbl_true );
@@ -1063,7 +1083,7 @@ void CselIRToAsmJitPass::visit_prolog(
 
     // false path
     c.compiler().mov( c.val2reg()[&value ], asmjit::imm( 0 ) );
-    VERBOSE( "mov %s, imm( 0 )", value.label() );
+    VERBOSE( "mov %s, imm( 0 )", value.label().c_str() );
 
     c.compiler().jmp( lbl_exit );
     VERBOSE( "jmp 'lbl_exit'" );
@@ -1073,7 +1093,7 @@ void CselIRToAsmJitPass::visit_prolog(
     VERBOSE( "bind 'lbl_true'" );
 
     c.compiler().mov( c.val2reg()[&value ], asmjit::imm( 1 ) );
-    VERBOSE( "mov %s, imm(1)", value.label() );
+    VERBOSE( "mov %s, imm(1)", value.label().c_str() );
 
     // end if compare
     c.compiler().bind( lbl_exit );
@@ -1109,9 +1129,9 @@ void CselIRToAsmJitPass::visit_prolog(
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
 
-    Type& type = value.type();
-    Value* res = &value;
-    Value* arg = value.value( 0 );
+    const auto type = value.type();
+    const auto res = &value;
+    const auto arg = value.operand( 0 ).get();
 
     alloc_reg_for_value( *res, c );
     alloc_reg_for_value( *arg, c );
@@ -1127,22 +1147,22 @@ void CselIRToAsmJitPass::visit_prolog(
             else if( type.bitsize() <= 8 )
             {
                 c.val2reg()[ res ] = c.val2reg()[ arg ].r8();
-                VERBOSE( "%s.r8()", arg->label() );
+                VERBOSE( "%s.r8()", arg->label().c_str() );
             }
             else if( type.bitsize() <= 16 )
             {
                 c.val2reg()[ res ] = c.val2reg()[ arg ].r16();
-                VERBOSE( "%s.r16()", arg->label() );
+                VERBOSE( "%s.r16()", arg->label().c_str() );
             }
             else if( type.bitsize() <= 32 )
             {
                 c.val2reg()[ res ] = c.val2reg()[ arg ].r32();
-                VERBOSE( "%s.r32()", arg->label() );
+                VERBOSE( "%s.r32()", arg->label().c_str() );
             }
             else if( type.bitsize() <= 64 )
             {
                 c.val2reg()[ res ] = c.val2reg()[ arg ].r64();
-                VERBOSE( "%s.r64()", arg->label() );
+                VERBOSE( "%s.r64()", arg->label().c_str() );
             }
             else
             {
@@ -1154,7 +1174,7 @@ void CselIRToAsmJitPass::visit_prolog(
         {
             libstdhl::Log::error(
                 "unsupported type '%s' for 'trunc' instruction!",
-                type.description() );
+                type.description().c_str() );
             assert( 0 );
             break;
         }
@@ -1177,9 +1197,10 @@ void CselIRToAsmJitPass::visit_prolog(
 
     alloc_reg_for_value( value, c );
 
-    c.compiler().mov( c.val2reg()[&value ], asmjit::imm( value.value() ) );
-    VERBOSE( "mov %s, imm( %lu ) [0x%x]", value.label(), value.value(),
-        value.value() );
+    c.compiler().mov( c.val2reg()[&value ],
+        asmjit::imm( value.value()[ 0 ] ) ); // FIXME: PPA: value access limited
+                                             // to 1 word!!!
+    VERBOSE( "mov %s, imm( %s )", value.label().c_str(), value.name().c_str() );
 }
 void CselIRToAsmJitPass::visit_epilog(
     BitConstant& value, libcsel_ir::Context& cxt )
@@ -1204,19 +1225,19 @@ void CselIRToAsmJitPass::visit_prolog(
 
     c.compiler().lea(
         c.val2reg()[&value ], c.compiler().newStack( byte_size, 4 ) );
-    VERBOSE( "lea %s, newStack( %u, 4 )", value.label(), byte_size );
+    VERBOSE( "lea %s, newStack( %u, 4 )", value.label().c_str(), byte_size );
 
     u32 byte_offset = 0;
-    for( auto v : value.value() )
+    for( auto& v : value.value() )
     {
-        alloc_reg_for_value( *v, c );
+        alloc_reg_for_value( v, c );
 
-        c.compiler().mov( x86::ptr( c.val2reg()[&value ], byte_offset ),
-            c.val2reg()[ v.get() ] );
-        VERBOSE(
-            "mov ptr( %s, %u), %s", value.label(), byte_offset, v->label() );
+        c.compiler().mov(
+            x86::ptr( c.val2reg()[&value ], byte_offset ), c.val2reg()[&v ] );
+        VERBOSE( "mov ptr( %s, %u), %s", value.label().c_str(), byte_offset,
+            v.label().c_str() );
 
-        bit_size = v->type().bitsize();
+        bit_size = v.type().bitsize();
         byte_size = bit_size / 8 + ( ( bit_size % 8 ) % 2 );
         byte_offset += byte_size;
     }
@@ -1262,7 +1283,7 @@ void CselIRToAsmJitPass::visit_epilog(
 // JiT
 //
 
-libcsel_ir::Value::Ptr CselIRToAsmJitPass::execute(
+libcsel_ir::Constant CselIRToAsmJitPass::execute(
     libcsel_ir::OperatorInstruction& value, Context& c )
 {
     libcsel_ir::CselIRDumpPass dump;
@@ -1277,18 +1298,17 @@ libcsel_ir::Value::Ptr CselIRToAsmJitPass::execute(
     fsig.addArg( TypeId::kUIntPtr );
 
     c.compiler().addFunc( func.funcsig() );
-    VERBOSE( "addFunc( %s )", value.name() );
+    VERBOSE( "addFunc( %s )", value.name().c_str() );
 
     X86Gp out = c.compiler().newUIntPtr( "out" );
     c.compiler().setArg( 0, out );
     VERBOSE( "setArg( %u, %s )", 0, "out" );
 
-    assert( value.values().size() <= 2 );
-    assert( libcsel_ir::isa< libcsel_ir::Constant >( value.values()[ 0 ] ) );
-    if( value.values().size() > 1 )
+    assert( value.operands().size() <= 2 );
+    assert( libcsel_ir::isa< libcsel_ir::Constant >( value.operand( 0 ) ) );
+    if( value.operands().size() > 1 )
     {
-        assert(
-            libcsel_ir::isa< libcsel_ir::Constant >( value.values()[ 1 ] ) );
+        assert( libcsel_ir::isa< libcsel_ir::Constant >( value.operand( 1 ) ) );
     }
 
     value.iterate( libcsel_ir::Traversal::PREORDER, this, &c );
@@ -1321,7 +1341,7 @@ libcsel_ir::Value::Ptr CselIRToAsmJitPass::execute(
         "~~~{.asm}\n"
         "%s"
         "~~~\n",
-        value.name(), func_ptr, c.logger().getString() );
+        value.name().c_str(), func_ptr, c.logger().getString() );
 
     u8 b[ 10 ];
     for( u32 i = 0; i < 10; i++ )
@@ -1344,10 +1364,12 @@ libcsel_ir::Value::Ptr CselIRToAsmJitPass::execute(
     assert( value.type().isBit() );
     assert( value.type().bitsize() <= 8 );
 
-    return libstdhl::make< libcsel_ir::BitConstant >( &value.type(), b[ 0 ] );
+    return libcsel_ir::BitConstant(
+        std::static_pointer_cast< libcsel_ir::BitType >( value.ptr_type() ),
+        b[ 0 ] );
 }
 
-libcsel_ir::Value::Ptr CselIRToAsmJitPass::execute(
+libcsel_ir::Constant CselIRToAsmJitPass::execute(
     libcsel_ir::CallInstruction& value, Context& c )
 {
     libcsel_ir::CselIRDumpPass dump;
@@ -1355,8 +1377,8 @@ libcsel_ir::Value::Ptr CselIRToAsmJitPass::execute(
     // create Builtin/Rule asm jit
     c.reset();
 
-    value.callee().iterate( libcsel_ir::Traversal::PREORDER, &dump );
-    value.callee().iterate( libcsel_ir::Traversal::PREORDER, this, &c );
+    value.callee()->iterate( libcsel_ir::Traversal::PREORDER, &dump );
+    value.callee()->iterate( libcsel_ir::Traversal::PREORDER, this, &c );
 
     // create CallInstruction asm jit
     c.reset();
@@ -1371,7 +1393,7 @@ libcsel_ir::Value::Ptr CselIRToAsmJitPass::execute(
     fsig.addArg( TypeId::kUIntPtr );
 
     c.compiler().addFunc( func.funcsig() );
-    VERBOSE( "addFunc( %s )", value.name() );
+    VERBOSE( "addFunc( %s )", value.name().c_str() );
 
     // PPA: check if output type matches !!!, maybe we need more
     // registers/pointers here!!! as args I mean
@@ -1382,7 +1404,7 @@ libcsel_ir::Value::Ptr CselIRToAsmJitPass::execute(
     value.iterate( libcsel_ir::Traversal::PREORDER, this, &c );
 
     X86Gp tmp = c.compiler().newU8( "tmp" );
-    for( auto v : value.values() )
+    for( auto v : value.operands() )
     {
         if( auto res = cast< libcsel_ir::AllocInstruction >( v ) )
         {
@@ -1392,11 +1414,12 @@ libcsel_ir::Value::Ptr CselIRToAsmJitPass::execute(
                 for( u32 idx = 0; idx < top; idx++ )
                 {
                     c.compiler().mov(
-                        tmp, x86::ptr( c.val2reg()[ res ], idx ) );
+                        tmp, x86::ptr( c.val2reg()[ (libcsel_ir::Value*)res ],
+                                 idx ) );
                     c.compiler().mov( x86::ptr( out, idx ), tmp );
 
                     VERBOSE( "mov( ptr( out, %lu ), ptr( %s, %lu ) )", idx,
-                        res->label(), idx );
+                        res->label().c_str(), idx );
                 }
             }
             else if( res->type().isStructure() )
@@ -1413,12 +1436,13 @@ libcsel_ir::Value::Ptr CselIRToAsmJitPass::execute(
                     {
                         idx = i + offset;
 
-                        c.compiler().mov(
-                            tmp, x86::ptr( c.val2reg()[ res ], idx ) );
+                        c.compiler().mov( tmp,
+                            x86::ptr(
+                                c.val2reg()[ (libcsel_ir::Value*)res ], idx ) );
                         c.compiler().mov( x86::ptr( out, idx ), tmp );
 
                         VERBOSE( "mov( ptr( out, %lu ), ptr( %s, %lu ) )", idx,
-                            res->label(), idx );
+                            res->label().c_str(), idx );
                     }
 
                     offset += top;
@@ -1442,8 +1466,8 @@ libcsel_ir::Value::Ptr CselIRToAsmJitPass::execute(
         "~~~{.asm}\n"
         "%s"
         "~~~\n",
-        value.name(), func_ptr, c.callable( &value.callee() ).funcptr(),
-        c.logger().getString() );
+        value.name().c_str(), func_ptr,
+        c.callable( value.callee().get() ).funcptr(), c.logger().getString() );
 
     if( err )
     {
@@ -1471,35 +1495,34 @@ libcsel_ir::Value::Ptr CselIRToAsmJitPass::execute(
         b[ 0 ], b[ 1 ], b[ 2 ], b[ 3 ], b[ 4 ], b[ 5 ], b[ 6 ], b[ 7 ], b[ 8 ],
         b[ 9 ] );
 
-    Type& type = value.type();
+    const auto type = value.ptr_type();
 
-    switch( type.id() )
+    switch( type->id() )
     {
         case Type::BIT:
         {
-            if( type.bitsize() < 1 )
+            const auto ctype
+                = std::static_pointer_cast< libcsel_ir::BitType >( type );
+
+            if( type->bitsize() < 1 )
             {
                 assert( not" bit type has invalid bit-size of '0' " );
             }
-            else if( type.bitsize() <= 8 )
+            else if( type->bitsize() <= 8 )
             {
-                return libstdhl::make< libcsel_ir::BitConstant >(
-                    &type, b[ 0 ] );
+                return libcsel_ir::BitConstant( ctype, b[ 0 ] );
             }
-            else if( type.bitsize() <= 16 )
+            else if( type->bitsize() <= 16 )
             {
-                return libstdhl::make< libcsel_ir::BitConstant >(
-                    &type, (u16)b[ 0 ] );
+                return libcsel_ir::BitConstant( ctype, ( u16 )( *&b[ 0 ] ) );
             }
-            else if( type.bitsize() <= 32 )
+            else if( type->bitsize() <= 32 )
             {
-                return libstdhl::make< libcsel_ir::BitConstant >(
-                    &type, (u32)b[ 0 ] );
+                return libcsel_ir::BitConstant( ctype, ( u32 )( *&b[ 0 ] ) );
             }
-            else if( type.bitsize() <= 64 )
+            else if( type->bitsize() <= 64 )
             {
-                return libstdhl::make< libcsel_ir::BitConstant >(
-                    &type, (u64)b[ 0 ] );
+                return libcsel_ir::BitConstant( ctype, ( u64 )( *&b[ 0 ] ) );
             }
             else
             {
@@ -1515,23 +1538,26 @@ libcsel_ir::Value::Ptr CselIRToAsmJitPass::execute(
                     and *value.type().results()[ 0 ]
                             == *value.type().results()[ 1 ] );
 
-            const std::vector< libcsel_ir::Constant::Ptr > el_args
-                = { libstdhl::make< libcsel_ir::BitConstant >(
-                        value.type().results()[ 0 ], b[ 0 ] ),
-                    libstdhl::make< libcsel_ir::BitConstant >(
-                        value.type().results()[ 1 ], b[ 1 ] ) };
+            const auto ctv
+                = std::static_pointer_cast< libcsel_ir::StructureType >(
+                    value.ptr_type() );
 
-            return std::static_pointer_cast< libcsel_ir::Value >(
-                libstdhl::make< libcsel_ir::StructureConstant >(
-                    value.type(), el_args ) );
+            const auto ct0 = std::static_pointer_cast< libcsel_ir::BitType >(
+                value.type().ptr_results()[ 0 ] );
+
+            const auto ct1 = std::static_pointer_cast< libcsel_ir::BitType >(
+                value.type().ptr_results()[ 1 ] );
+
+            return libcsel_ir::StructureConstant( ctv,
+                { BitConstant( ct0, b[ 0 ] ), BitConstant( ct1, b[ 1 ] ) } );
         }
         default:
         {
-            libstdhl::Log::error(
-                "unsupported value '%s' to return", value.c_str() );
+            libstdhl::Log::error( "unsupported value '%s' to return",
+                value.description().c_str() );
 
             assert( 0 );
-            return libstdhl::make< libcsel_ir::VoidConstant >();
+            return libcsel_ir::VoidConstant();
         }
     }
 }

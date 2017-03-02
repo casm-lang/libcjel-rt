@@ -25,139 +25,178 @@
 
 using namespace libcsel_ir;
 
-TEST( libcsel_rt__instruction, and)
+TEST( libcsel_rt__instruction, AndInstruction )
 {
-    auto a = BitConstant( 8, 0x18 );
-    auto b = BitConstant( 8, 0xff );
+    auto a = libstdhl::make< BitConstant >( 8, 0x18 );
+    auto b = libstdhl::make< BitConstant >( 8, 0xff );
 
-    auto i = AndInstruction( &a, &b );
+    auto i = AndInstruction( a, b );
 
     auto r = libcsel_rt::Instruction::execute( i );
 
-    ASSERT_TRUE( *r == BitConstant( 8, 0x18 ) );
+    ASSERT_TRUE( r == BitConstant( 8, 0x18 ) );
 }
 
 TEST( libcsel_rt__instruction, AddUnsignedInstruction )
 {
-    auto t = Type::Bit( 8 );
+    auto t = libstdhl::make< BitType >( 8 );
 
-    auto a = BitConstant( t, 0x11 );
-    auto b = BitConstant( t, 0x22 );
+    auto a = libstdhl::make< BitConstant >( t, 0x11 );
+    auto b = libstdhl::make< BitConstant >( t, 0x22 );
 
-    auto i = AddUnsignedInstruction( &a, &b );
+    auto i = AddUnsignedInstruction( a, b );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    ASSERT_TRUE( *r == BitConstant( t, 0x33 ) );
+    ASSERT_TRUE( r == BitConstant( t, 0x33 ) );
 }
 
 TEST( libcsel_rt__instruction_example, simple_move_test )
 {
-    auto b_t = Type::Bit( 8 );
-    auto s_t = Type::Structure( { { b_t, "v" }, { b_t, "w" } } );
+    auto b_t = libstdhl::make< BitType >( 8 );
 
-    auto a = StructureConstant(
-        *s_t, { libstdhl::make< BitConstant >( b_t, 0x12 ),
-                  libstdhl::make< BitConstant >( b_t, 0x34 ) } );
+    std::vector< StructureElement > structure_args
+        = { { b_t, "v" }, { b_t, "w" } };
 
-    auto x0 = BitConstant( b_t, 0 );
-    auto x1 = BitConstant( b_t, 1 );
+    Structure::Ptr structure
+        = libstdhl::make< Structure >( "structure", structure_args );
 
-    auto f_t = Type::Relation( { s_t }, { s_t } );
+    auto s_t = libstdhl::make< StructureType >( structure );
 
-    auto f = Intrinsic( "sym", f_t ); // operation res.v := arg.v; res.w = arg.w
-    auto f_i = f.in( "arg", s_t );
-    auto f_o = f.out( "res", s_t );
+    const std::vector< Constant > a_args
+        = { BitConstant( b_t, 0x12 ), BitConstant( b_t, 0x34 ) };
 
-    auto scope = ParallelScope( &f );
-    auto stmt = TrivialStatement( &scope );
+    auto a = libstdhl::make< StructureConstant >( s_t, a_args );
 
-    auto v_ptr = ExtractInstruction( f_i, &x0 );
-    auto v_ld = LoadInstruction( &v_ptr );
-    stmt.add( &v_ld );
+    auto x0 = libstdhl::make< BitConstant >( b_t, 0 );
+    auto x1 = libstdhl::make< BitConstant >( b_t, 1 );
 
-    auto w_ptr = ExtractInstruction( f_i, &x1 );
-    auto w_ld = LoadInstruction( &w_ptr );
-    stmt.add( &w_ld );
+    const std::vector< Type::Ptr > f_t_i = { s_t };
+    auto f_t = libstdhl::make< RelationType >( f_t_i, f_t_i );
 
-    auto res_v_ptr = ExtractInstruction( f_o, &x0 );
-    auto res_w_ptr = ExtractInstruction( f_o, &x1 );
+    auto f = libstdhl::make< Intrinsic >(
+        "sym", f_t ); // operation res.v := arg.v; res.w = arg.w
+    auto f_i = f->in( "arg", s_t );
+    auto f_o = f->out( "res", s_t );
 
-    auto res_v_st = StoreInstruction( &v_ld, &res_v_ptr );
-    auto res_w_st = StoreInstruction( &w_ld, &res_w_ptr );
+    auto scope = libstdhl::make< ParallelScope >();
+    f->setContext( scope );
 
-    stmt.add( &res_v_st );
-    stmt.add( &res_w_st );
+    auto stmt = libstdhl::make< TrivialStatement >();
+    stmt->setParent( scope );
+    scope->add( stmt );
 
-    auto m = AllocInstruction( s_t );
-    auto i = CallInstruction( &f, { &a, &m } );
+    auto v_ptr = stmt->add( libstdhl::make< ExtractInstruction >( f_i, x0 ) );
+    auto v_ld = stmt->add( libstdhl::make< LoadInstruction >( v_ptr ) );
+    auto w_ptr = stmt->add( libstdhl::make< ExtractInstruction >( f_i, x1 ) );
+    auto w_ld = stmt->add( libstdhl::make< LoadInstruction >( w_ptr ) );
+
+    auto res_v_ptr
+        = stmt->add( libstdhl::make< ExtractInstruction >( f_o, x0 ) );
+    auto res_w_ptr
+        = stmt->add( libstdhl::make< ExtractInstruction >( f_o, x1 ) );
+
+    auto res_v_st
+        = stmt->add( libstdhl::make< StoreInstruction >( v_ld, res_v_ptr ) );
+    auto res_w_st
+        = stmt->add( libstdhl::make< StoreInstruction >( w_ld, res_w_ptr ) );
+
+    auto m = libstdhl::make< AllocInstruction >( s_t );
+    auto i = CallInstruction( f, { a, m } );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( *r == a );
+    EXPECT_TRUE( r == *a );
 }
 
 TEST( libcsel_rt__instruction_example, TODO_NAME )
 {
-    auto b_t = Type::Bit( 8 );
-    auto s_t = Type::Structure( { { b_t, "v" }, { b_t, "w" } } );
+    auto b_t = libstdhl::make< BitType >( 8 );
 
-    auto a = StructureConstant(
-        *s_t, { libstdhl::make< BitConstant >( b_t, 0x04 ),
-                  libstdhl::make< BitConstant >( b_t, 0x08 ) } );
+    const std::vector< StructureElement > structure_args
+        = { { b_t, "v" }, { b_t, "w" } };
 
-    auto x0 = BitConstant( b_t, 0 );
-    auto x1 = BitConstant( b_t, 1 );
+    auto structure = libstdhl::make< Structure >( "structure", structure_args );
 
-    auto f_t = Type::Relation( { b_t }, { s_t } );
+    auto s_t = libstdhl::make< StructureType >( structure );
 
-    auto f = Intrinsic( "sym", f_t ); // operation res := arg.v + arg.w + 0xa0
-    auto f_i = f.in( "arg", s_t );
-    auto f_o = f.out( "res", b_t );
-    auto scope = ParallelScope( &f );
-    auto stmt = TrivialStatement( &scope );
+    const std::vector< Constant > a_args
+        = { BitConstant( b_t, 0x04 ), BitConstant( b_t, 0x08 ) };
+    auto a = libstdhl::make< StructureConstant >( s_t, a_args );
 
-    auto v_ptr = ExtractInstruction( f_i, &x0 );
-    auto v_ld = LoadInstruction( &v_ptr );
-    auto v = stmt.add( &v_ld );
+    auto x0 = libstdhl::make< BitConstant >( b_t, 0 );
+    auto x1 = libstdhl::make< BitConstant >( b_t, 1 );
 
-    auto w_ptr = ExtractInstruction( f_i, &x1 );
-    auto w_ld = LoadInstruction( &w_ptr );
-    auto w = stmt.add( &w_ld );
+    const std::vector< Type::Ptr > f_t_i = { s_t };
+    const std::vector< Type::Ptr > f_t_o = { b_t };
+    auto f_t = libstdhl::make< RelationType >( f_t_o, f_t_i );
 
-    auto r0 = stmt.add( new AddUnsignedInstruction( v, w ) );
+    auto f = libstdhl::make< Intrinsic >(
+        "sym", f_t ); // operation res := arg.v + arg.w + 0xa0
+    auto f_i = f->in( "arg", s_t );
+    auto f_o = f->out( "res", b_t );
 
-    auto c0 = BitConstant( b_t, 0xa0 );
-    auto r1 = stmt.add( new AddUnsignedInstruction( r0, &c0 ) );
+    auto scope = libstdhl::make< ParallelScope >();
+    f->setContext( scope );
 
-    stmt.add( new StoreInstruction( r1, f_o ) );
+    auto stmt = libstdhl::make< TrivialStatement >();
+    stmt->setParent( scope );
+    scope->add( stmt );
 
-    auto m = AllocInstruction( b_t );
-    auto i = CallInstruction( &f, { &a, &m } );
+    auto v_ptr = stmt->add( libstdhl::make< ExtractInstruction >( f_i, x0 ) );
+    auto v_ld = stmt->add( libstdhl::make< LoadInstruction >( v_ptr ) );
+
+    auto w_ptr = stmt->add( libstdhl::make< ExtractInstruction >( f_i, x1 ) );
+    auto w_ld = stmt->add( libstdhl::make< LoadInstruction >( w_ptr ) );
+
+    auto r0
+        = stmt->add( libstdhl::make< AddUnsignedInstruction >( v_ld, w_ld ) );
+
+    auto c0 = libstdhl::make< BitConstant >( b_t, 0xa0 );
+    auto r1 = stmt->add( libstdhl::make< AddUnsignedInstruction >( r0, c0 ) );
+    stmt->add( libstdhl::make< StoreInstruction >( r1, f_o ) );
+
+    auto m = libstdhl::make< AllocInstruction >( b_t );
+
+    auto i = CallInstruction( f, { a, m } );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( *r == BitConstant( b_t, 0x04 + 0x08 + 0xa0 ) );
+    EXPECT_TRUE( r == BitConstant( b_t, 0x04 + 0x08 + 0xa0 ) );
 }
 
 TEST( libcsel_rt__instruction_example, lala )
 {
-    auto b_t = Type::Bit( 8 );
-    auto s_t = Type::Structure( { { b_t, "v" }, { b_t, "w" } } );
+    auto b_t = libstdhl::make< BitType >( 8 );
 
-    auto a = StructureConstant(
-        *s_t, { libstdhl::make< BitConstant >( b_t, 0x04 ),
-                  libstdhl::make< BitConstant >( b_t, 0x08 ) } );
+    const std::vector< StructureElement > structure_args
+        = { { b_t, "v" }, { b_t, "w" } };
 
-    auto f_t = Type::Relation( { b_t }, { s_t } );
+    auto structure = libstdhl::make< Structure >( "structure", structure_args );
 
-    auto f = Intrinsic( "sym", f_t );
-    f.in( "arg", s_t );
-    f.out( "res", b_t );
+    auto s_t = libstdhl::make< StructureType >( structure );
 
-    auto scope = ParallelScope( &f );
-    auto stmt = TrivialStatement( &scope );
-    stmt.add( new NopInstruction() );
+    const std::vector< Constant > a_args
+        = { BitConstant( b_t, 0x04 ), BitConstant( b_t, 0x08 ) };
+    auto a = libstdhl::make< StructureConstant >( s_t, a_args );
 
-    auto m = AllocInstruction( b_t );
-    auto i = CallInstruction( &f, { &a, &m } );
+    const std::vector< Type::Ptr > f_t_i = { s_t };
+    const std::vector< Type::Ptr > f_t_o = { b_t };
+    auto f_t = libstdhl::make< RelationType >( f_t_o, f_t_i );
+
+    auto f = libstdhl::make< Intrinsic >( "sym", f_t );
+    f->in( "arg", s_t );
+    f->out( "res", b_t );
+
+    auto scope = libstdhl::make< ParallelScope >();
+    f->setContext( scope );
+
+    auto stmt = libstdhl::make< TrivialStatement >();
+    stmt->setParent( scope );
+    scope->add( stmt );
+
+    stmt->add( libstdhl::make< NopInstruction >() );
+
+    auto m = libstdhl::make< AllocInstruction >( b_t );
+
+    auto i = CallInstruction( f, { a, m } );
     auto r = libcsel_rt::Instruction::execute( i );
 }
 

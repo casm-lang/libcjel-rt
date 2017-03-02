@@ -27,72 +27,72 @@ using namespace libcsel_ir;
 
 TEST( libcsel_rt__instruction_neq, NeqInstruction_true )
 {
-    auto a = BitConstant( 8, 0xf0 );
-    auto b = BitConstant( 8, 0x0f );
+    auto a = libstdhl::make< BitConstant >( 8, 0xf0 );
+    auto b = libstdhl::make< BitConstant >( 8, 0x0f );
 
-    auto i = NeqInstruction( &a, &b );
+    auto i = NeqInstruction( a, b );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( *r == BitConstant( 1, true ) );
+    EXPECT_TRUE( r == BitConstant( 1, true ) );
 }
 
 TEST( libcsel_rt__instruction_neq, NeqInstruction_true_zero )
 {
-    auto a = BitConstant( 8, 0 );
-    auto b = BitConstant( 8, 123 );
+    auto a = libstdhl::make< BitConstant >( 8, 0 );
+    auto b = libstdhl::make< BitConstant >( 8, 123 );
 
-    auto i = NeqInstruction( &a, &b );
+    auto i = NeqInstruction( a, b );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( *r == BitConstant( 1, true ) );
+    EXPECT_TRUE( r == BitConstant( 1, true ) );
 }
 
 TEST( libcsel_rt__instruction_neq, NeqInstruction_true_zero_64 )
 {
-    auto t = Type::Bit( 64 );
+    auto t = libstdhl::make< BitType >( 64 );
 
-    auto a = BitConstant( t, 0 );
-    auto b = BitConstant( t, 123 );
+    auto a = libstdhl::make< BitConstant >( t, 0 );
+    auto b = libstdhl::make< BitConstant >( t, 123 );
 
-    auto i = NeqInstruction( &a, &b );
+    auto i = NeqInstruction( a, b );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( *r == BitConstant( 1, true ) );
+    EXPECT_TRUE( r == BitConstant( 1, true ) );
 }
 
 TEST( libcsel_rt__instruction_neq, NeqInstruction_false )
 {
-    auto a = BitConstant( 8, 123 );
-    auto b = BitConstant( 8, 123 );
+    auto a = libstdhl::make< BitConstant >( 8, 123 );
+    auto b = libstdhl::make< BitConstant >( 8, 123 );
 
-    auto i = NeqInstruction( &a, &b );
+    auto i = NeqInstruction( a, b );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( *r == BitConstant( 1, false ) );
+    EXPECT_TRUE( r == BitConstant( 1, false ) );
 }
 
 TEST( libcsel_rt__instruction_neq, NeqInstruction_false_zero )
 {
-    auto a = BitConstant( 8, 0 );
-    auto b = BitConstant( 8, 0 );
+    auto a = libstdhl::make< BitConstant >( 8, 0 );
+    auto b = libstdhl::make< BitConstant >( 8, 0 );
 
-    auto i = NeqInstruction( &a, &b );
+    auto i = NeqInstruction( a, b );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( *r == BitConstant( 1, false ) );
+    EXPECT_TRUE( r == BitConstant( 1, false ) );
 }
 
 TEST( libcsel_rt__instruction_neq, NeqInstruction_false_zero_64 )
 {
-    auto t = Type::Bit( 64 );
+    auto t = libstdhl::make< BitType >( 64 );
 
-    auto a = BitConstant( t, 123 );
-    auto b = BitConstant( t, 123 );
+    auto a = libstdhl::make< BitConstant >( t, 123 );
+    auto b = libstdhl::make< BitConstant >( t, 123 );
 
-    auto i = NeqInstruction( &a, &b );
+    auto i = NeqInstruction( a, b );
     auto r = libcsel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( *r == BitConstant( 1, false ) );
+    EXPECT_TRUE( r == BitConstant( 1, false ) );
 }
 
 //
