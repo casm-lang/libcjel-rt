@@ -1219,27 +1219,23 @@ void CselIRToAsmJitPass::visit_prolog(
 
     alloc_reg_for_value( value, c );
 
-    u32 bit_size = value.type().bitsize();
-    u32 byte_size = bit_size / 8 + ( ( bit_size % 8 ) % 2 );
-    byte_size = ( byte_size == 0 ? 1 : byte_size );
+    u64 byte_size = value.type().wordsize();
+    u64 byte_offset = 0;
 
     c.compiler().lea(
         c.val2reg()[&value ], c.compiler().newStack( byte_size, 4 ) );
     VERBOSE( "lea %s, newStack( %u, 4 )", value.label().c_str(), byte_size );
 
-    u32 byte_offset = 0;
-    for( auto& v : value.value() )
+    for( std::size_t i = 0; i < value.value().size(); i++ )
     {
-        alloc_reg_for_value( v, c );
+        alloc_reg_for_value( value.value()[ i ], c );
 
-        c.compiler().mov(
-            x86::ptr( c.val2reg()[&value ], byte_offset ), c.val2reg()[&v ] );
+        c.compiler().mov( x86::ptr( c.val2reg()[&value ], byte_offset ),
+            c.val2reg()[&value.value()[ i ] ] );
         VERBOSE( "mov ptr( %s, %u), %s", value.label().c_str(), byte_offset,
-            v.label().c_str() );
+            value.value()[ i ].label().c_str() );
 
-        bit_size = v.type().bitsize();
-        byte_size = bit_size / 8 + ( ( bit_size % 8 ) % 2 );
-        byte_offset += byte_size;
+        byte_offset += value.value()[ i ].type().wordsize();
     }
 }
 void CselIRToAsmJitPass::visit_epilog(

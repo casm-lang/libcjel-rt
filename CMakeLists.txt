@@ -90,7 +90,6 @@ add_executable( ${TARGET}-check
   ${LIBS}/gtest/googletest/src/gtest_main.cc
   ${LIBS}/gtest/googletest/src/gtest-all.cc  
   $<TARGET_OBJECTS:${TARGET}-test>
-  $<TARGET_OBJECTS:csel-ir-test>
 )
 
 target_link_libraries( ${TARGET}-check
