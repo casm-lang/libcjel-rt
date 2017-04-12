@@ -37,7 +37,7 @@ using namespace libcsel_ir;
 libcsel_ir::Constant libcsel_rt::Instruction::execute(
     libcsel_ir::Instruction& value )
 {
-    libstdhl::Log::info( "%s", __FUNCTION__ );
+    fprintf( stderr, "%s:%i: %s\n", __FILE__, __LINE__, __FUNCTION__ );
 
     libcsel_rt::CselIRToAsmJitPass::Context c;
     libcsel_rt::CselIRToAsmJitPass x;
@@ -52,7 +52,7 @@ libcsel_ir::Constant libcsel_rt::Instruction::execute(
     }
     else
     {
-        libstdhl::Log::error( "%s:%i: unimplemented instruction to be executed",
+        fprintf( stderr, "%s:%i: unimplemented instruction to be executed\n",
             __FILE__, __LINE__ );
 
         assert( 0 );

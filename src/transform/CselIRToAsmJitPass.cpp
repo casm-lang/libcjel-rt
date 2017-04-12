@@ -51,22 +51,21 @@ bool CselIRToAsmJitPass::run( libpass::PassResult& pr )
 
 #if 0
 #define TRACE( FMT, ARGS... )                                                  \
-    libstdhl::Log::info(                                                       \
-        "Asmjit:%i: %p: %s | %s | '%s' | size=%lu | @ %p" FMT, __LINE__,       \
-        &value, value.name().c_str(), value.label().c_str(),                   \
+    fprintf( stderr, "asmjit:%i: %p: %s | %s | '%s' | size=%lu | @ %p\n" FMT,  \
+        __LINE__, &value, value.name().c_str(), value.label().c_str(),         \
         value.type().name().c_str(), value.type().bitsize(), cxt, ##ARGS )
 #else
 #define TRACE( FMT, ARGS... )
 #endif
 
 #define VERBOSE( FMT, ARGS... )                                                \
-    libstdhl::Log::info( "[%s %s] %s = " FMT, value.name().c_str(),            \
+    fprintf( stderr, "[%s %s] %s = " FMT "\n", value.name().c_str(),           \
         value.type().name().c_str(), value.label().c_str(), ##ARGS )
 
 #define FIXME()                                                                \
     {                                                                          \
-        libstdhl::Log::error(                                                  \
-            "%s:%i: FIXME: unimplemented", __FUNCTION__, __LINE__ );           \
+        fprintf(                                                               \
+            stderr, "%s:%i: FIXME: unimplemented\n", __FUNCTION__, __LINE__ ); \
         assert( 0 );                                                           \
     }
 
@@ -114,8 +113,8 @@ static u32 calc_byte_size( const libcsel_ir::Type& type )
         }
         default:
         {
-            libstdhl::Log::error(
-                "unsupported type '%s' to calculate byte_size!",
+            fprintf( stderr,
+                "unsupported type '%s' to calculate byte_size!\n",
                 type.description().c_str() );
             assert( 0 );
             return 0;
@@ -173,8 +172,8 @@ void CselIRToAsmJitPass::alloc_reg_for_value( Value& value, Context& c )
             {
                 idx = i + offset;
                 c.compiler().mov( x86::ptr( c.val2reg()[&value ], idx ), tmp );
-                VERBOSE( "mov ptr( %s, %lu ), imm( 0 )", value.label().c_str(),
-                    idx );
+                VERBOSE(
+                    "mov ptr( %s, %u ), imm( 0 )", value.label().c_str(), idx );
             }
 
             offset += top;
@@ -230,15 +229,15 @@ void CselIRToAsmJitPass::alloc_reg_for_value( Value& value, Context& c )
         }
         default:
         {
-            libstdhl::Log::error(
-                "unsupported type '%s' to allocate a register!",
+            fprintf( stderr,
+                "unsupported type '%s' to allocate a register!\n",
                 type.description().c_str() );
             assert( 0 );
             break;
         }
     }
 
-    // libstdhl::Log::info( "alloc '%p' for '%s' of type '%s'",
+    // fprintf( stderr,  "alloc '%p' for '%s' of type '%s'",
     //     &c.val2reg()[&value ],
     //     value.label(),
     //     value.type().name() );
@@ -261,9 +260,9 @@ void CselIRToAsmJitPass::alloc_reg_for_value( Value& value, Context& c )
             }
             default:
             {
-                libstdhl::Log::error(
+                fprintf( stderr,
                     "unsupported constant value of type '%s' to allocate a "
-                    "register!",
+                    "register!\n",
                     type.description().c_str() );
                 assert( 0 );
                 break;
@@ -368,7 +367,7 @@ void CselIRToAsmJitPass::visit_epilog(
 
     if( err )
     {
-        libstdhl::Log::error( "asmjit: %s", DebugUtils::errorAsString( err ) );
+        fprintf( stderr, "asmjit: %s", DebugUtils::errorAsString( err ) );
         assert( 0 );
     }
 
@@ -690,12 +689,12 @@ void CselIRToAsmJitPass::visit_prolog(
             byte_size = bit_size / 8 + ( ( bit_size % 8 ) % 2 );
             byte_offset += byte_size;
         }
-        // libstdhl::Log::info( "byte size = %lu, %lu", byte_size, byte_offset
+        // fprintf( stderr,  "byte size = %lu, %lu", byte_size, byte_offset
         // );
 
         c.val2mem()[&value ]
             = x86::ptr( c.val2reg()[ base.get() ], byte_offset );
-        VERBOSE( "ptr( %s, %lu ) [ '%s' @ %s --> bs = %lu ]",
+        VERBOSE( "ptr( %s, %u ) [ '%s' @ %s --> bs = %lu ]",
             base->label().c_str(), byte_offset, base->type().name().c_str(),
             index.name().c_str(),
             base->type()
@@ -1172,8 +1171,8 @@ void CselIRToAsmJitPass::visit_prolog(
         }
         default:
         {
-            libstdhl::Log::error(
-                "unsupported type '%s' for 'trunc' instruction!",
+            fprintf( stderr,
+                "unsupported type '%s' for 'trunc' instruction!\n",
                 type.description().c_str() );
             assert( 0 );
             break;
@@ -1224,7 +1223,7 @@ void CselIRToAsmJitPass::visit_prolog(
 
     c.compiler().lea(
         c.val2reg()[&value ], c.compiler().newStack( byte_size, 4 ) );
-    VERBOSE( "lea %s, newStack( %u, 4 )", value.label().c_str(), byte_size );
+    VERBOSE( "lea %s, newStack( %lu, 4 )", value.label().c_str(), byte_size );
 
     for( std::size_t i = 0; i < value.value().size(); i++ )
     {
@@ -1232,7 +1231,7 @@ void CselIRToAsmJitPass::visit_prolog(
 
         c.compiler().mov( x86::ptr( c.val2reg()[&value ], byte_offset ),
             c.val2reg()[&value.value()[ i ] ] );
-        VERBOSE( "mov ptr( %s, %u), %s", value.label().c_str(), byte_offset,
+        VERBOSE( "mov ptr( %s, %lu ), %s", value.label().c_str(), byte_offset,
             value.value()[ i ].label().c_str() );
 
         byte_offset += value.value()[ i ].type().wordsize();
@@ -1326,7 +1325,7 @@ libcsel_ir::Constant CselIRToAsmJitPass::execute(
     Error err = c.runtime().add( &func_ptr, &c.codeholder() );
     if( err )
     {
-        libstdhl::Log::error( "asmjit: %s", DebugUtils::errorAsString( err ) );
+        fprintf( stderr, "asmjit: %s", DebugUtils::errorAsString( err ) );
         assert( 0 );
     }
 
@@ -1414,7 +1413,7 @@ libcsel_ir::Constant CselIRToAsmJitPass::execute(
                                  idx ) );
                     c.compiler().mov( x86::ptr( out, idx ), tmp );
 
-                    VERBOSE( "mov( ptr( out, %lu ), ptr( %s, %lu ) )", idx,
+                    VERBOSE( "mov( ptr( out, %u ), ptr( %s, %u ) )", idx,
                         res->label().c_str(), idx );
                 }
             }
@@ -1437,7 +1436,7 @@ libcsel_ir::Constant CselIRToAsmJitPass::execute(
                                 c.val2reg()[ (libcsel_ir::Value*)res ], idx ) );
                         c.compiler().mov( x86::ptr( out, idx ), tmp );
 
-                        VERBOSE( "mov( ptr( out, %lu ), ptr( %s, %lu ) )", idx,
+                        VERBOSE( "mov( ptr( out, %u ), ptr( %s, %u ) )", idx,
                             res->label().c_str(), idx );
                     }
 
@@ -1467,7 +1466,7 @@ libcsel_ir::Constant CselIRToAsmJitPass::execute(
 
     if( err )
     {
-        libstdhl::Log::error( "asmjit: %s", DebugUtils::errorAsString( err ) );
+        fprintf( stderr, "asmjit: %s\n", DebugUtils::errorAsString( err ) );
         assert( 0 );
     }
 
@@ -1479,15 +1478,15 @@ libcsel_ir::Constant CselIRToAsmJitPass::execute(
         b[ i ] = 0xff;
     }
 
-    libstdhl::Log::info( "b: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x",
+    fprintf( stderr, "b: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
         b[ 0 ], b[ 1 ], b[ 2 ], b[ 3 ], b[ 4 ], b[ 5 ], b[ 6 ], b[ 7 ], b[ 8 ],
         b[ 9 ] );
 
-    libstdhl::Log::info( "calling: %p", c.callable( &value ).funcptr() );
+    fprintf( stderr, "calling: %p\n", c.callable( &value ).funcptr() );
     typedef void ( *CallableType )( void* );
     ( (CallableType)c.callable( &value ).funcptr() )( b );
 
-    libstdhl::Log::info( "b: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x",
+    fprintf( stderr, "b: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
         b[ 0 ], b[ 1 ], b[ 2 ], b[ 3 ], b[ 4 ], b[ 5 ], b[ 6 ], b[ 7 ], b[ 8 ],
         b[ 9 ] );
 
@@ -1549,7 +1548,7 @@ libcsel_ir::Constant CselIRToAsmJitPass::execute(
         }
         default:
         {
-            libstdhl::Log::error( "unsupported value '%s' to return",
+            fprintf( stderr, "unsupported value '%s' to return\n",
                 value.description().c_str() );
 
             assert( 0 );
