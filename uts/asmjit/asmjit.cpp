@@ -23,10 +23,11 @@
 
 #include "gtest/gtest.h"
 
+#include "asmjit/asmjit.h"
+
 #include "libcsel-rt.h"
 #include "libstdhl.h"
 
-#include "asmjit/asmjit.h"
 
 using namespace asmjit;
 
@@ -153,13 +154,13 @@ TEST( libcsel_rt__asmjit, compiler2 )
     X86Gp iv = cc.newU64( "iv" );
     X86Gp id = cc.newU8( "id" );
 
-    cc.mov( iv, x86::ptr64( ivp ) );
-    cc.mov( id, x86::ptr8( idp ) );
+    cc.mov( iv, x86::ptr_64( ivp ) );
+    cc.mov( id, x86::ptr_8( idp ) );
 
     cc.and_( iv, imm( 0x1 ) );
 
-    cc.mov( x86::ptr8( bvp ), iv.r8() );
-    cc.mov( x86::ptr8( bdp ), id );
+    cc.mov( x86::ptr_8( bvp ), iv.r8() );
+    cc.mov( x86::ptr_8( bdp ), id );
 
     cc.endFunc();
     cc.finalize();
@@ -228,14 +229,14 @@ TEST( libcsel_rt__asmjit, compiler3 )
     X86Gp iv = cc.newU64( "iv" );
     X86Gp id = cc.newU8( "id" );
 
-    cc.mov( iv, x86::ptr64( ip, 0 ) );
-    cc.mov( id, x86::ptr8( ip, 8 ) );
+    cc.mov( iv, x86::ptr_64( ip, 0 ) );
+    cc.mov( id, x86::ptr_8( ip, 8 ) );
 
     cc.add( iv, 1 );
     cc.sub( id, 1 );
 
-    cc.mov( x86::ptr8( bp, 0 ), iv.r8() );
-    cc.mov( x86::ptr8( bp, 1 ), id );
+    cc.mov( x86::ptr_8( bp, 0 ), iv.r8() );
+    cc.mov( x86::ptr_8( bp, 1 ), id );
 
     cc.endFunc();
     cc.finalize();
@@ -311,14 +312,14 @@ TEST( libcsel_rt__asmjit, compiler4 )
     X86Gp iv = cc.newU64( "iv" );
     X86Gp id = cc.newU8( "id" );
 
-    cc.mov( id, x86::ptr( ip, 0 ) );
-    cc.mov( iv, x86::ptr( ip, 8 ) );
+    cc.mov( id, x86::ptr_8( ip, 0 ) );
+    cc.mov( iv, x86::ptr_8( ip, 8 ) );
 
     cc.add( id, 1 );
     cc.sub( iv, 1 );
 
-    cc.mov( x86::ptr( bp, 0 ), id );
-    cc.mov( x86::ptr( bp, 1 ), iv.r8() );
+    cc.mov( x86::ptr_8( bp, 0 ), id );
+    cc.mov( x86::ptr_8( bp, 1 ), iv.r8() );
 
     cc.endFunc();
     cc.finalize();
@@ -400,14 +401,14 @@ TEST( libcsel_rt__asmjit, compiler5 )
         X86Gp iv = cc.newU64( "iv" );
         X86Gp id = cc.newU8( "id" );
 
-        cc.mov( id, x86::ptr( ip, 0 ) );
-        cc.mov( iv, x86::ptr( ip, 8 ) );
+        cc.mov( id, x86::ptr_8( ip, 0 ) );
+        cc.mov( iv, x86::ptr_8( ip, 8 ) );
 
         cc.add( id, 1 );
         cc.sub( iv, 1 );
 
-        cc.mov( x86::ptr( bp, 0 ), id );
-        cc.mov( x86::ptr( bp, 1 ), iv.r8() );
+        cc.mov( x86::ptr_8( bp, 0 ), id );
+        cc.mov( x86::ptr_8( bp, 1 ), iv.r8() );
 
         cc.endFunc();
         cc.finalize();
@@ -441,10 +442,10 @@ TEST( libcsel_rt__asmjit, compiler5 )
         cc.lea( ap, a );
 
         X86Gp tmp = cc.newU8( "tmp" );
-        cc.mov( tmp, x86::ptr( ip, 0 ) );
-        cc.mov( x86::ptr( ap, 0 ), tmp );
-        cc.mov( tmp, x86::ptr( ip, 8 ) );
-        cc.mov( x86::ptr( ap, 8 ), tmp );
+        cc.mov( tmp, x86::ptr_8( ip, 0 ) );
+        cc.mov( x86::ptr_8( ap, 0 ), tmp );
+        cc.mov( tmp, x86::ptr_8( ip, 8 ) );
+        cc.mov( x86::ptr_8( ap, 8 ), tmp );
 
         X86Mem r = cc.newStack( 2, 4 ); // { u8, u8 }
         X86Gp rp = cc.newUIntPtr( "r" );
@@ -459,15 +460,15 @@ TEST( libcsel_rt__asmjit, compiler5 )
         call->setArg( 1, rp );
 
         // write to outputs for debug and testing!!!
-        cc.mov( tmp, x86::ptr( ap, 0 ) );
-        cc.mov( x86::ptr( ip, 0 ), tmp );
-        cc.mov( tmp, x86::ptr( ap, 8 ) );
-        cc.mov( x86::ptr( ip, 8 ), tmp );
+        cc.mov( tmp, x86::ptr_8( ap, 0 ) );
+        cc.mov( x86::ptr_8( ip, 0 ), tmp );
+        cc.mov( tmp, x86::ptr_8( ap, 8 ) );
+        cc.mov( x86::ptr_8( ip, 8 ), tmp );
 
-        cc.mov( tmp, x86::ptr( rp, 0 ) );
-        cc.mov( x86::ptr( bp, 0 ), tmp );
-        cc.mov( tmp, x86::ptr( rp, 1 ) );
-        cc.mov( x86::ptr( bp, 1 ), tmp );
+        cc.mov( tmp, x86::ptr_8( rp, 0 ) );
+        cc.mov( x86::ptr_8( bp, 0 ), tmp );
+        cc.mov( tmp, x86::ptr_8( rp, 1 ) );
+        cc.mov( x86::ptr_8( bp, 1 ), tmp );
 
         cc.endFunc();
         cc.finalize();
