@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2017 CASM Organization
+//  Copyright (c) 2015-2017 Philipp Paulweber
 //  All rights reserved.
 //
 //  Developed by: Philipp Paulweber
@@ -21,15 +21,23 @@
 //  along with libcsel-rt. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef _LIB_CSELRT_UTS_MAIN_H_
-#define _LIB_CSELRT_UTS_MAIN_H_
+#include "uts/main.h"
 
-#include "../stdhl/uts/main.h"
+void libcsel_rt_main_dummy( void )
+{
+    const auto source = libstdhl::make< libstdhl::Log::Source >(
+        "libcsel-rt", "CSEL RT Library" );
 
-#include "libcsel-rt.h"
-#include "libcsel-ir.h"
+    libstdhl::Log::defaultSource( source );
+}
 
-#endif // _LIB_CSELRT_UTS_MAIN_H_
+TEST( libcsel_rt_main, empty )
+{
+}
+
+BENCHMARK( libcsel_rt_main, empty, 10, 10 )
+{
+}
 
 //
 //  Local variables:
