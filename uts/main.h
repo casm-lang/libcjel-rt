@@ -26,8 +26,8 @@
 
 #include "../stdhl/uts/main.h"
 
-#include "libcsel-rt.h"
 #include "libcsel-ir.h"
+#include "libcsel-rt.h"
 
 #endif // _LIB_CSELRT_UTS_MAIN_H_
 

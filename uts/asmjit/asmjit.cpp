@@ -28,7 +28,6 @@
 #include "libcsel-rt.h"
 #include "libstdhl.h"
 
-
 using namespace asmjit;
 
 TEST( libcsel_rt__asmjit, assembler )
