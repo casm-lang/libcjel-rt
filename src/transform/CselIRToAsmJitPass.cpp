@@ -675,14 +675,14 @@ void CselIRToAsmJitPass::visit_prolog(
         assert( isa< BitConstant >( offset ) );
         BitConstant& index = static_cast< BitConstant& >( *offset );
 
-        assert( index.value()[ 0 ]
+        assert( index.value().word( 0 )
                 < base->type().results().size() ); // PPA: FIXME: use real
                                                    // operator< for: Type < u64
 
         u32 byte_offset = 0;
         u32 byte_size = 0;
         u32 bit_size = 0;
-        for( u32 i = 0; i < index.value()[ 0 ];
+        for( u32 i = 0; i < index.value().word( 0 );
              i++ ) // PPA: FIXME: check if value is not greater one word!
         {
             bit_size = base->type().results()[ i ]->bitsize();
@@ -698,7 +698,7 @@ void CselIRToAsmJitPass::visit_prolog(
             base->label().c_str(), byte_offset, base->type().name().c_str(),
             index.name().c_str(),
             base->type()
-                .results()[ index.value()[ 0 ] ]
+                .results()[ index.value().word( 0 ) ]
                 ->bitsize() ); // PPA: FIXME: index access!!!
     }
     else
@@ -1197,8 +1197,9 @@ void CselIRToAsmJitPass::visit_prolog(
     alloc_reg_for_value( value, c );
 
     c.compiler().mov( c.val2reg()[&value ],
-        asmjit::imm( value.value()[ 0 ] ) ); // FIXME: PPA: value access limited
-                                             // to 1 word!!!
+        asmjit::imm(
+            value.value().word( 0 ) ) ); // FIXME: PPA: value access limited
+                                         // to 1 word!!!
     VERBOSE( "mov %s, imm( %s )", value.label().c_str(), value.name().c_str() );
 }
 void CselIRToAsmJitPass::visit_epilog(
