@@ -3,47 +3,47 @@
 //  All rights reserved.
 //
 //  Developed by: Philipp Paulweber
-//                https://github.com/casm-lang/libcsel-rt
+//                https://github.com/casm-lang/libcjel-rt
 //
-//  This file is part of libcsel-rt.
+//  This file is part of libcjel-rt.
 //
-//  libcsel-rt is free software: you can redistribute it and/or modify
+//  libcjel-rt is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
 //  the Free Software Foundation, either version 3 of the License, or
 //  (at your option) any later version.
 //
-//  libcsel-rt is distributed in the hope that it will be useful,
+//  libcjel-rt is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 //  GNU General Public License for more details.
 //
 //  You should have received a copy of the GNU General Public License
-//  along with libcsel-rt. If not, see <http://www.gnu.org/licenses/>.
+//  along with libcjel-rt. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "CselIRToAsmJitPass.h"
+#include "CjelIRToAsmJitPass.h"
 
-#include "../csel-ir/src/Constant.h"
-#include "../csel-ir/src/Function.h"
-#include "../csel-ir/src/Instruction.h"
-#include "../csel-ir/src/Intrinsic.h"
-#include "../csel-ir/src/Value.h"
-#include "../csel-ir/src/analyze/CselIRDumpPass.h"
+#include "../cjel-ir/src/Constant.h"
+#include "../cjel-ir/src/Function.h"
+#include "../cjel-ir/src/Instruction.h"
+#include "../cjel-ir/src/Intrinsic.h"
+#include "../cjel-ir/src/Value.h"
+#include "../cjel-ir/src/analyze/CjelIRDumpPass.h"
 
 #include "../stdhl/cpp/Default.h"
 #include "../stdhl/cpp/Log.h"
 #include "../stdhl/cpp/Math.h"
 
-using namespace libcsel_ir;
-using namespace libcsel_rt;
+using namespace libcjel_ir;
+using namespace libcjel_rt;
 using namespace asmjit;
 
-char CselIRToAsmJitPass::id = 0;
+char CjelIRToAsmJitPass::id = 0;
 
-static libpass::PassRegistration< CselIRToAsmJitPass > PASS(
-    "CSEL IR to AsmJit", "TBD", 0, 0 );
+static libpass::PassRegistration< CjelIRToAsmJitPass > PASS(
+    "CJEL IR to AsmJit", "TBD", 0, 0 );
 
-bool CselIRToAsmJitPass::run( libpass::PassResult& pr )
+bool CjelIRToAsmJitPass::run( libpass::PassResult& pr )
 {
     assert( not" PPA: TODO!!! " );
     return false;
@@ -69,7 +69,7 @@ bool CselIRToAsmJitPass::run( libpass::PassResult& pr )
         assert( 0 );                                                           \
     }
 
-static u32 calc_byte_size( const libcsel_ir::Type& type )
+static u32 calc_byte_size( const libcjel_ir::Type& type )
 {
     switch( type.id() )
     {
@@ -122,7 +122,7 @@ static u32 calc_byte_size( const libcsel_ir::Type& type )
     }
 }
 
-void CselIRToAsmJitPass::alloc_reg_for_value( Value& value, Context& c )
+void CjelIRToAsmJitPass::alloc_reg_for_value( Value& value, Context& c )
 {
     auto type = value.type();
 
@@ -249,13 +249,13 @@ void CselIRToAsmJitPass::alloc_reg_for_value( Value& value, Context& c )
             case Value::BIT_CONSTANT:
             {
                 visit_prolog( static_cast< BitConstant& >( value ),
-                    static_cast< libcsel_ir::Context& >( c ) );
+                    static_cast< libcjel_ir::Context& >( c ) );
                 break;
             }
             case Value::STRUCTURE_CONSTANT:
             {
                 visit_prolog( static_cast< StructureConstant& >( value ),
-                    static_cast< libcsel_ir::Context& >( c ) );
+                    static_cast< libcjel_ir::Context& >( c ) );
                 break;
             }
             default:
@@ -271,12 +271,12 @@ void CselIRToAsmJitPass::alloc_reg_for_value( Value& value, Context& c )
     }
 }
 
-void CselIRToAsmJitPass::visit_prolog( Module& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog( Module& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     FIXME();
 }
-void CselIRToAsmJitPass::visit_epilog( Module& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog( Module& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -284,19 +284,19 @@ void CselIRToAsmJitPass::visit_epilog( Module& value, libcsel_ir::Context& cxt )
 // Function
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    Function& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    Function& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     FIXME();
 }
-void CselIRToAsmJitPass::visit_interlog(
-    Function& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_interlog(
+    Function& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
 }
-void CselIRToAsmJitPass::visit_epilog(
-    Function& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    Function& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
 }
@@ -305,8 +305,8 @@ void CselIRToAsmJitPass::visit_epilog(
 // Intrinsic
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    Intrinsic& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    Intrinsic& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
@@ -317,8 +317,8 @@ void CselIRToAsmJitPass::visit_prolog(
     FuncSignatureX& fsig = func.funcsig();
     fsig.init( CallConv::kIdHost, TypeId::kVoid, fsig._builderArgList, 0 );
 }
-void CselIRToAsmJitPass::visit_interlog(
-    Intrinsic& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_interlog(
+    Intrinsic& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
@@ -346,8 +346,8 @@ void CselIRToAsmJitPass::visit_interlog(
 
     assert( func.funcsig().getArgCount() == func.argsize() );
 }
-void CselIRToAsmJitPass::visit_epilog(
-    Intrinsic& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    Intrinsic& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
@@ -379,8 +379,8 @@ void CselIRToAsmJitPass::visit_epilog(
 // Reference
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    Reference& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    Reference& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
@@ -388,8 +388,8 @@ void CselIRToAsmJitPass::visit_prolog(
     FuncSignatureX& fsig = func.funcsig();
     fsig.addArg( TypeId::kUIntPtr );
 }
-void CselIRToAsmJitPass::visit_epilog(
-    Reference& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    Reference& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -397,14 +397,14 @@ void CselIRToAsmJitPass::visit_epilog(
 // Structure
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    Structure& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    Structure& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     FIXME();
 }
-void CselIRToAsmJitPass::visit_epilog(
-    Structure& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    Structure& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
 }
@@ -413,14 +413,14 @@ void CselIRToAsmJitPass::visit_epilog(
 // Variable
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    Variable& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    Variable& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     FIXME();
 }
-void CselIRToAsmJitPass::visit_epilog(
-    Variable& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    Variable& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
 }
@@ -429,12 +429,12 @@ void CselIRToAsmJitPass::visit_epilog(
 // Memory
 //
 
-void CselIRToAsmJitPass::visit_prolog( Memory& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog( Memory& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     FIXME();
 }
-void CselIRToAsmJitPass::visit_epilog( Memory& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog( Memory& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
 }
@@ -443,13 +443,13 @@ void CselIRToAsmJitPass::visit_epilog( Memory& value, libcsel_ir::Context& cxt )
 // ParallelScope
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    ParallelScope& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    ParallelScope& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
 }
-void CselIRToAsmJitPass::visit_epilog(
-    ParallelScope& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    ParallelScope& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -457,13 +457,13 @@ void CselIRToAsmJitPass::visit_epilog(
 // SequentialScope
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    SequentialScope& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    SequentialScope& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
 }
-void CselIRToAsmJitPass::visit_epilog(
-    SequentialScope& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    SequentialScope& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -471,13 +471,13 @@ void CselIRToAsmJitPass::visit_epilog(
 // TrivialStatement
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    TrivialStatement& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    TrivialStatement& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
 }
-void CselIRToAsmJitPass::visit_epilog(
-    TrivialStatement& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    TrivialStatement& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -485,19 +485,19 @@ void CselIRToAsmJitPass::visit_epilog(
 // BranchStatement
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    BranchStatement& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    BranchStatement& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     FIXME();
 }
-void CselIRToAsmJitPass::visit_interlog(
-    BranchStatement& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_interlog(
+    BranchStatement& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
 }
-void CselIRToAsmJitPass::visit_epilog(
-    BranchStatement& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    BranchStatement& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
 }
@@ -506,19 +506,19 @@ void CselIRToAsmJitPass::visit_epilog(
 // LoopStatement
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    LoopStatement& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    LoopStatement& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     FIXME();
 }
-void CselIRToAsmJitPass::visit_interlog(
-    LoopStatement& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_interlog(
+    LoopStatement& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
 }
-void CselIRToAsmJitPass::visit_epilog(
-    LoopStatement& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    LoopStatement& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
 }
@@ -527,8 +527,8 @@ void CselIRToAsmJitPass::visit_epilog(
 // CallInstruction
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    CallInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    CallInstruction& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
@@ -563,8 +563,8 @@ void CselIRToAsmJitPass::visit_prolog(
             value.operands()[ i ]->label().c_str() );
     }
 }
-void CselIRToAsmJitPass::visit_epilog(
-    CallInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    CallInstruction& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -572,14 +572,14 @@ void CselIRToAsmJitPass::visit_epilog(
 // IdCallInstruction
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    IdCallInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    IdCallInstruction& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     FIXME();
 }
-void CselIRToAsmJitPass::visit_epilog(
-    IdCallInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    IdCallInstruction& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -587,14 +587,14 @@ void CselIRToAsmJitPass::visit_epilog(
 // StreamInstruction
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    StreamInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    StreamInstruction& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     FIXME();
 }
-void CselIRToAsmJitPass::visit_epilog(
-    StreamInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    StreamInstruction& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -602,13 +602,13 @@ void CselIRToAsmJitPass::visit_epilog(
 // NopInstruction
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    NopInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    NopInstruction& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
 }
-void CselIRToAsmJitPass::visit_epilog(
-    NopInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    NopInstruction& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -616,14 +616,14 @@ void CselIRToAsmJitPass::visit_epilog(
 // AllocInstruction
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    AllocInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    AllocInstruction& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     FIXME();
 }
-void CselIRToAsmJitPass::visit_epilog(
-    AllocInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    AllocInstruction& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -631,14 +631,14 @@ void CselIRToAsmJitPass::visit_epilog(
 // IdInstruction
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    IdInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    IdInstruction& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     FIXME();
 }
-void CselIRToAsmJitPass::visit_epilog(
-    IdInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    IdInstruction& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -646,14 +646,14 @@ void CselIRToAsmJitPass::visit_epilog(
 // CastInstruction
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    CastInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    CastInstruction& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     FIXME();
 }
-void CselIRToAsmJitPass::visit_epilog(
-    CastInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    CastInstruction& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -661,8 +661,8 @@ void CselIRToAsmJitPass::visit_epilog(
 // ExtractInstruction
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    ExtractInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    ExtractInstruction& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
@@ -706,8 +706,8 @@ void CselIRToAsmJitPass::visit_prolog(
         assert( 0 );
     }
 }
-void CselIRToAsmJitPass::visit_epilog(
-    ExtractInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    ExtractInstruction& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -715,8 +715,8 @@ void CselIRToAsmJitPass::visit_epilog(
 // LoadInstruction
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    LoadInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    LoadInstruction& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
@@ -735,8 +735,8 @@ void CselIRToAsmJitPass::visit_prolog(
         assert( 0 );
     }
 }
-void CselIRToAsmJitPass::visit_epilog(
-    LoadInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    LoadInstruction& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -744,8 +744,8 @@ void CselIRToAsmJitPass::visit_epilog(
 // StoreInstruction
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    StoreInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    StoreInstruction& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
@@ -773,8 +773,8 @@ void CselIRToAsmJitPass::visit_prolog(
         assert( not" unsupported 'store' instruction usage! " );
     }
 }
-void CselIRToAsmJitPass::visit_epilog(
-    StoreInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    StoreInstruction& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -782,8 +782,8 @@ void CselIRToAsmJitPass::visit_epilog(
 // NotInstruction
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    NotInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    NotInstruction& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
@@ -800,8 +800,8 @@ void CselIRToAsmJitPass::visit_prolog(
     c.compiler().not_( c.val2reg()[ res ] );
     VERBOSE( "not_ %s", res->label().c_str() );
 }
-void CselIRToAsmJitPass::visit_epilog(
-    NotInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    NotInstruction& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -809,8 +809,8 @@ void CselIRToAsmJitPass::visit_epilog(
 // LnotInstruction
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    LnotInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    LnotInstruction& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
@@ -849,8 +849,8 @@ void CselIRToAsmJitPass::visit_prolog(
     c.compiler().bind( lbl_exit );
     VERBOSE( "bind 'lbl_exit'" );
 }
-void CselIRToAsmJitPass::visit_epilog(
-    LnotInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    LnotInstruction& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -858,8 +858,8 @@ void CselIRToAsmJitPass::visit_epilog(
 // AndInstruction
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    AndInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    AndInstruction& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
@@ -878,8 +878,8 @@ void CselIRToAsmJitPass::visit_prolog(
     c.compiler().and_( c.val2reg()[ res ], c.val2reg()[ rhs ] );
     VERBOSE( "and_ %s, %s", res->label().c_str(), rhs->label().c_str() );
 }
-void CselIRToAsmJitPass::visit_epilog(
-    AndInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    AndInstruction& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -887,8 +887,8 @@ void CselIRToAsmJitPass::visit_epilog(
 // OrInstruction
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    OrInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    OrInstruction& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
@@ -907,8 +907,8 @@ void CselIRToAsmJitPass::visit_prolog(
     c.compiler().or_( c.val2reg()[ res ], c.val2reg()[ rhs ] );
     VERBOSE( "or_ %s, %s", res->label().c_str(), rhs->label().c_str() );
 }
-void CselIRToAsmJitPass::visit_epilog(
-    OrInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    OrInstruction& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -916,14 +916,14 @@ void CselIRToAsmJitPass::visit_epilog(
 // XorInstruction
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    XorInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    XorInstruction& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     FIXME();
 }
-void CselIRToAsmJitPass::visit_epilog(
-    XorInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    XorInstruction& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -931,8 +931,8 @@ void CselIRToAsmJitPass::visit_epilog(
 // AddUnsignedInstruction
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    AddUnsignedInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    AddUnsignedInstruction& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
@@ -951,8 +951,8 @@ void CselIRToAsmJitPass::visit_prolog(
     c.compiler().add( c.val2reg()[ res ], c.val2reg()[ rhs ] );
     VERBOSE( "add %s, %s", res->label().c_str(), rhs->label().c_str() );
 }
-void CselIRToAsmJitPass::visit_epilog(
-    AddUnsignedInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    AddUnsignedInstruction& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -960,14 +960,14 @@ void CselIRToAsmJitPass::visit_epilog(
 // AddSignedInstruction
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    AddSignedInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    AddSignedInstruction& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     FIXME();
 }
-void CselIRToAsmJitPass::visit_epilog(
-    AddSignedInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    AddSignedInstruction& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -975,14 +975,14 @@ void CselIRToAsmJitPass::visit_epilog(
 // DivSignedInstruction
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    DivSignedInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    DivSignedInstruction& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     FIXME();
 }
-void CselIRToAsmJitPass::visit_epilog(
-    DivSignedInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    DivSignedInstruction& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -990,14 +990,14 @@ void CselIRToAsmJitPass::visit_epilog(
 // ModUnsignedInstruction
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    ModUnsignedInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    ModUnsignedInstruction& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     FIXME();
 }
-void CselIRToAsmJitPass::visit_epilog(
-    ModUnsignedInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    ModUnsignedInstruction& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -1005,8 +1005,8 @@ void CselIRToAsmJitPass::visit_epilog(
 // EquInstruction
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    EquInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    EquInstruction& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
@@ -1047,8 +1047,8 @@ void CselIRToAsmJitPass::visit_prolog(
     c.compiler().bind( lbl_exit );
     VERBOSE( "bind 'lbl_exit'" );
 }
-void CselIRToAsmJitPass::visit_epilog(
-    EquInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    EquInstruction& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -1056,8 +1056,8 @@ void CselIRToAsmJitPass::visit_epilog(
 // NeqInstruction
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    NeqInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    NeqInstruction& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
@@ -1098,8 +1098,8 @@ void CselIRToAsmJitPass::visit_prolog(
     c.compiler().bind( lbl_exit );
     VERBOSE( "bind 'lbl_exit'" );
 }
-void CselIRToAsmJitPass::visit_epilog(
-    NeqInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    NeqInstruction& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -1107,14 +1107,14 @@ void CselIRToAsmJitPass::visit_epilog(
 // ZeroExtendInstruction
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    ZeroExtendInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    ZeroExtendInstruction& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     FIXME();
 }
-void CselIRToAsmJitPass::visit_epilog(
-    ZeroExtendInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    ZeroExtendInstruction& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -1122,8 +1122,8 @@ void CselIRToAsmJitPass::visit_epilog(
 // TruncationInstruction
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    TruncationInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    TruncationInstruction& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
@@ -1179,8 +1179,8 @@ void CselIRToAsmJitPass::visit_prolog(
         }
     }
 }
-void CselIRToAsmJitPass::visit_epilog(
-    TruncationInstruction& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    TruncationInstruction& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -1188,8 +1188,8 @@ void CselIRToAsmJitPass::visit_epilog(
 // BitConstant
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    BitConstant& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    BitConstant& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
@@ -1202,8 +1202,8 @@ void CselIRToAsmJitPass::visit_prolog(
                                          // to 1 word!!!
     VERBOSE( "mov %s, imm( %s )", value.label().c_str(), value.name().c_str() );
 }
-void CselIRToAsmJitPass::visit_epilog(
-    BitConstant& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    BitConstant& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -1211,8 +1211,8 @@ void CselIRToAsmJitPass::visit_epilog(
 // StructureConstant
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    StructureConstant& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    StructureConstant& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     Context& c = static_cast< Context& >( cxt );
@@ -1238,8 +1238,8 @@ void CselIRToAsmJitPass::visit_prolog(
         byte_offset += value.value()[ i ].type().wordsize();
     }
 }
-void CselIRToAsmJitPass::visit_epilog(
-    StructureConstant& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    StructureConstant& value, libcjel_ir::Context& cxt )
 {
 }
 
@@ -1247,14 +1247,14 @@ void CselIRToAsmJitPass::visit_epilog(
 // StringConstant
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    StringConstant& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    StringConstant& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     FIXME();
 }
-void CselIRToAsmJitPass::visit_epilog(
-    StringConstant& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    StringConstant& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
 }
@@ -1263,14 +1263,14 @@ void CselIRToAsmJitPass::visit_epilog(
 // Interconnect
 //
 
-void CselIRToAsmJitPass::visit_prolog(
-    Interconnect& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_prolog(
+    Interconnect& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
     FIXME();
 }
-void CselIRToAsmJitPass::visit_epilog(
-    Interconnect& value, libcsel_ir::Context& cxt )
+void CjelIRToAsmJitPass::visit_epilog(
+    Interconnect& value, libcjel_ir::Context& cxt )
 {
     TRACE( "" );
 }
@@ -1279,10 +1279,10 @@ void CselIRToAsmJitPass::visit_epilog(
 // JiT
 //
 
-libcsel_ir::Constant CselIRToAsmJitPass::execute(
-    libcsel_ir::OperatorInstruction& value, Context& c )
+libcjel_ir::Constant CjelIRToAsmJitPass::execute(
+    libcjel_ir::OperatorInstruction& value, Context& c )
 {
-    libcsel_ir::CselIRDumpPass dump;
+    libcjel_ir::CjelIRDumpPass dump;
 
     c.reset();
 
@@ -1301,14 +1301,14 @@ libcsel_ir::Constant CselIRToAsmJitPass::execute(
     VERBOSE( "setArg( %u, %s )", 0, "out" );
 
     assert( value.operands().size() <= 2 );
-    assert( libcsel_ir::isa< libcsel_ir::Constant >( value.operand( 0 ) ) );
+    assert( libcjel_ir::isa< libcjel_ir::Constant >( value.operand( 0 ) ) );
     if( value.operands().size() > 1 )
     {
-        assert( libcsel_ir::isa< libcsel_ir::Constant >( value.operand( 1 ) ) );
+        assert( libcjel_ir::isa< libcjel_ir::Constant >( value.operand( 1 ) ) );
     }
 
-    value.iterate( libcsel_ir::Traversal::PREORDER, this, &c );
-    value.iterate( libcsel_ir::Traversal::PREORDER, &dump );
+    value.iterate( libcjel_ir::Traversal::PREORDER, this, &c );
+    value.iterate( libcjel_ir::Traversal::PREORDER, &dump );
 
     u32 byte_size = calc_byte_size( value.type() );
 
@@ -1360,26 +1360,26 @@ libcsel_ir::Constant CselIRToAsmJitPass::execute(
     assert( value.type().isBit() );
     assert( value.type().bitsize() <= 8 );
 
-    return libcsel_ir::BitConstant(
-        std::static_pointer_cast< libcsel_ir::BitType >( value.ptr_type() ),
+    return libcjel_ir::BitConstant(
+        std::static_pointer_cast< libcjel_ir::BitType >( value.ptr_type() ),
         b[ 0 ] );
 }
 
-libcsel_ir::Constant CselIRToAsmJitPass::execute(
-    libcsel_ir::CallInstruction& value, Context& c )
+libcjel_ir::Constant CjelIRToAsmJitPass::execute(
+    libcjel_ir::CallInstruction& value, Context& c )
 {
-    libcsel_ir::CselIRDumpPass dump;
+    libcjel_ir::CjelIRDumpPass dump;
 
     // create Builtin/Rule asm jit
     c.reset();
 
-    value.callee()->iterate( libcsel_ir::Traversal::PREORDER, &dump );
-    value.callee()->iterate( libcsel_ir::Traversal::PREORDER, this, &c );
+    value.callee()->iterate( libcjel_ir::Traversal::PREORDER, &dump );
+    value.callee()->iterate( libcjel_ir::Traversal::PREORDER, this, &c );
 
     // create CallInstruction asm jit
     c.reset();
 
-    value.iterate( libcsel_ir::Traversal::PREORDER, &dump );
+    value.iterate( libcjel_ir::Traversal::PREORDER, &dump );
 
     Context::Callable& func = c.callable( &value );
     func.argsize( -1 );
@@ -1397,12 +1397,12 @@ libcsel_ir::Constant CselIRToAsmJitPass::execute(
     c.compiler().setArg( 0, out );
     VERBOSE( "setArg( %u, %s )", 0, "out" );
 
-    value.iterate( libcsel_ir::Traversal::PREORDER, this, &c );
+    value.iterate( libcjel_ir::Traversal::PREORDER, this, &c );
 
     X86Gp tmp = c.compiler().newU8( "tmp" );
     for( auto v : value.operands() )
     {
-        if( auto res = cast< libcsel_ir::AllocInstruction >( v ) )
+        if( auto res = cast< libcjel_ir::AllocInstruction >( v ) )
         {
             if( res->type().isBit() )
             {
@@ -1410,7 +1410,7 @@ libcsel_ir::Constant CselIRToAsmJitPass::execute(
                 for( u32 idx = 0; idx < top; idx++ )
                 {
                     c.compiler().mov(
-                        tmp, x86::ptr( c.val2reg()[ (libcsel_ir::Value*)res ],
+                        tmp, x86::ptr( c.val2reg()[ (libcjel_ir::Value*)res ],
                                  idx ) );
                     c.compiler().mov( x86::ptr( out, idx ), tmp );
 
@@ -1434,7 +1434,7 @@ libcsel_ir::Constant CselIRToAsmJitPass::execute(
 
                         c.compiler().mov( tmp,
                             x86::ptr(
-                                c.val2reg()[ (libcsel_ir::Value*)res ], idx ) );
+                                c.val2reg()[ (libcjel_ir::Value*)res ], idx ) );
                         c.compiler().mov( x86::ptr( out, idx ), tmp );
 
                         VERBOSE( "mov( ptr( out, %u ), ptr( %s, %u ) )", idx,
@@ -1498,7 +1498,7 @@ libcsel_ir::Constant CselIRToAsmJitPass::execute(
         case Type::BIT:
         {
             const auto ctype
-                = std::static_pointer_cast< libcsel_ir::BitType >( type );
+                = std::static_pointer_cast< libcjel_ir::BitType >( type );
 
             if( type->bitsize() < 1 )
             {
@@ -1506,19 +1506,19 @@ libcsel_ir::Constant CselIRToAsmJitPass::execute(
             }
             else if( type->bitsize() <= 8 )
             {
-                return libcsel_ir::BitConstant( ctype, b[ 0 ] );
+                return libcjel_ir::BitConstant( ctype, b[ 0 ] );
             }
             else if( type->bitsize() <= 16 )
             {
-                return libcsel_ir::BitConstant( ctype, ( u16 )( *&b[ 0 ] ) );
+                return libcjel_ir::BitConstant( ctype, ( u16 )( *&b[ 0 ] ) );
             }
             else if( type->bitsize() <= 32 )
             {
-                return libcsel_ir::BitConstant( ctype, ( u32 )( *&b[ 0 ] ) );
+                return libcjel_ir::BitConstant( ctype, ( u32 )( *&b[ 0 ] ) );
             }
             else if( type->bitsize() <= 64 )
             {
-                return libcsel_ir::BitConstant( ctype, ( u64 )( *&b[ 0 ] ) );
+                return libcjel_ir::BitConstant( ctype, ( u64 )( *&b[ 0 ] ) );
             }
             else
             {
@@ -1535,16 +1535,16 @@ libcsel_ir::Constant CselIRToAsmJitPass::execute(
                             == *value.type().results()[ 1 ] );
 
             const auto ctv
-                = std::static_pointer_cast< libcsel_ir::StructureType >(
+                = std::static_pointer_cast< libcjel_ir::StructureType >(
                     value.ptr_type() );
 
-            const auto ct0 = std::static_pointer_cast< libcsel_ir::BitType >(
+            const auto ct0 = std::static_pointer_cast< libcjel_ir::BitType >(
                 value.type().ptr_results()[ 0 ] );
 
-            const auto ct1 = std::static_pointer_cast< libcsel_ir::BitType >(
+            const auto ct1 = std::static_pointer_cast< libcjel_ir::BitType >(
                 value.type().ptr_results()[ 1 ] );
 
-            return libcsel_ir::StructureConstant( ctv,
+            return libcjel_ir::StructureConstant( ctv,
                 { BitConstant( ct0, b[ 0 ] ), BitConstant( ct1, b[ 1 ] ) } );
         }
         default:
@@ -1553,7 +1553,7 @@ libcsel_ir::Constant CselIRToAsmJitPass::execute(
                 value.description().c_str() );
 
             assert( 0 );
-            return libcsel_ir::VoidConstant();
+            return libcjel_ir::VoidConstant();
         }
     }
 }

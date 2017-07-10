@@ -3,22 +3,22 @@
 #   All rights reserved.
 #
 #   Developed by: Philipp Paulweber
-#                 https://github.com/casm-lang/libcsel-rt
+#                 https://github.com/casm-lang/libcjel-rt
 #
-#   This file is part of libcsel-rt.
+#   This file is part of libcjel-rt.
 #
-#   libcsel-rt is free software: you can redistribute it and/or modify
+#   libcjel-rt is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
 #   the Free Software Foundation, either version 3 of the License, or
 #   (at your option) any later version.
 #
-#   libcsel-rt is distributed in the hope that it will be useful,
+#   libcjel-rt is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 #   GNU General Public License for more details.
 #
 #   You should have received a copy of the GNU General Public License
-#   along with libcsel-rt. If not, see <http://www.gnu.org/licenses/>.
+#   along with libcjel-rt. If not, see <http://www.gnu.org/licenses/>.
 #
 
 cmake_minimum_required( VERSION 3.1 )
@@ -32,7 +32,7 @@ endif()
 foreach( DEPENDENCY
     stdhl
     pass
-    csel-ir
+    cjel-ir
     )
   if( NOT TARGET ${DEPENDENCY} )
     add_subdirectory( ${LIBS}/${DEPENDENCY} lib/${DEPENDENCY} )
@@ -44,7 +44,7 @@ file( GLOB_RECURSE CXX_SRC_FILES "src/*.cpp" )
 file( GLOB_RECURSE CXX_UTS_FILES "uts/*.cpp" )
 
 
-set( TARGET csel-rt )
+set( TARGET cjel-rt )
 project( ${TARGET} )
 
 
@@ -56,7 +56,7 @@ include_directories(
   ${LIBS}/hayai/src
   ${LIBS}/stdhl
   ${LIBS}/pass
-  ${LIBS}/csel-ir  
+  ${LIBS}/cjel-ir  
   ${LIBS}/asmjit/src
 )
 
@@ -94,7 +94,7 @@ add_executable( ${TARGET}-check
 
 target_link_libraries( ${TARGET}-check
   ${TARGET}
-  csel-ir
+  cjel-ir
   pass
   stdhl
   pthread
@@ -113,7 +113,7 @@ add_executable( ${TARGET}-run
 
 target_link_libraries( ${TARGET}-run
   ${TARGET}
-  csel-ir
+  cjel-ir
   pass
   stdhl
   pthread

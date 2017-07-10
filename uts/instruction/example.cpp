@@ -3,41 +3,41 @@
 //  All rights reserved.
 //
 //  Developed by: Philipp Paulweber
-//                https://github.com/casm-lang/libcsel-rt
+//                https://github.com/casm-lang/libcjel-rt
 //
-//  This file is part of libcsel-rt.
+//  This file is part of libcjel-rt.
 //
-//  libcsel-rt is free software: you can redistribute it and/or modify
+//  libcjel-rt is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
 //  the Free Software Foundation, either version 3 of the License, or
 //  (at your option) any later version.
 //
-//  libcsel-rt is distributed in the hope that it will be useful,
+//  libcjel-rt is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 //  GNU General Public License for more details.
 //
 //  You should have received a copy of the GNU General Public License
-//  along with libcsel-rt. If not, see <http://www.gnu.org/licenses/>.
+//  along with libcjel-rt. If not, see <http://www.gnu.org/licenses/>.
 //
 
 #include "uts/main.h"
 
-using namespace libcsel_ir;
+using namespace libcjel_ir;
 
-TEST( libcsel_rt__instruction, AndInstruction )
+TEST( libcjel_rt__instruction, AndInstruction )
 {
     auto a = libstdhl::make< BitConstant >( 8, 0x18 );
     auto b = libstdhl::make< BitConstant >( 8, 0xff );
 
     auto i = AndInstruction( a, b );
 
-    auto r = libcsel_rt::Instruction::execute( i );
+    auto r = libcjel_rt::Instruction::execute( i );
 
     ASSERT_TRUE( r == BitConstant( 8, 0x18 ) );
 }
 
-TEST( libcsel_rt__instruction, AddUnsignedInstruction )
+TEST( libcjel_rt__instruction, AddUnsignedInstruction )
 {
     auto t = libstdhl::make< BitType >( 8 );
 
@@ -45,12 +45,12 @@ TEST( libcsel_rt__instruction, AddUnsignedInstruction )
     auto b = libstdhl::make< BitConstant >( t, 0x22 );
 
     auto i = AddUnsignedInstruction( a, b );
-    auto r = libcsel_rt::Instruction::execute( i );
+    auto r = libcjel_rt::Instruction::execute( i );
 
     ASSERT_TRUE( r == BitConstant( t, 0x33 ) );
 }
 
-TEST( libcsel_rt__instruction_example, simple_move_test )
+TEST( libcjel_rt__instruction_example, simple_move_test )
 {
     auto b_t = libstdhl::make< BitType >( 8 );
 
@@ -102,12 +102,12 @@ TEST( libcsel_rt__instruction_example, simple_move_test )
 
     auto m = libstdhl::make< AllocInstruction >( s_t );
     auto i = CallInstruction( f, { a, m } );
-    auto r = libcsel_rt::Instruction::execute( i );
+    auto r = libcjel_rt::Instruction::execute( i );
 
     EXPECT_TRUE( r == *a );
 }
 
-TEST( libcsel_rt__instruction_example, TODO_NAME )
+TEST( libcjel_rt__instruction_example, TODO_NAME )
 {
     auto b_t = libstdhl::make< BitType >( 8 );
 
@@ -157,12 +157,12 @@ TEST( libcsel_rt__instruction_example, TODO_NAME )
     auto m = libstdhl::make< AllocInstruction >( b_t );
 
     auto i = CallInstruction( f, { a, m } );
-    auto r = libcsel_rt::Instruction::execute( i );
+    auto r = libcjel_rt::Instruction::execute( i );
 
     EXPECT_TRUE( r == BitConstant( b_t, 0x04 + 0x08 + 0xa0 ) );
 }
 
-TEST( libcsel_rt__instruction_example, lala )
+TEST( libcjel_rt__instruction_example, lala )
 {
     auto b_t = libstdhl::make< BitType >( 8 );
 
@@ -197,7 +197,7 @@ TEST( libcsel_rt__instruction_example, lala )
     auto m = libstdhl::make< AllocInstruction >( b_t );
 
     auto i = CallInstruction( f, { a, m } );
-    auto r = libcsel_rt::Instruction::execute( i );
+    auto r = libcjel_rt::Instruction::execute( i );
 }
 
 //

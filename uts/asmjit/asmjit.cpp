@@ -3,34 +3,34 @@
 //  All rights reserved.
 //
 //  Developed by: Philipp Paulweber
-//                https://github.com/casm-lang/libcsel-rt
+//                https://github.com/casm-lang/libcjel-rt
 //
-//  This file is part of libcsel-rt.
+//  This file is part of libcjel-rt.
 //
-//  libcsel-rt is free software: you can redistribute it and/or modify
+//  libcjel-rt is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
 //  the Free Software Foundation, either version 3 of the License, or
 //  (at your option) any later version.
 //
-//  libcsel-rt is distributed in the hope that it will be useful,
+//  libcjel-rt is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 //  GNU General Public License for more details.
 //
 //  You should have received a copy of the GNU General Public License
-//  along with libcsel-rt. If not, see <http://www.gnu.org/licenses/>.
+//  along with libcjel-rt. If not, see <http://www.gnu.org/licenses/>.
 //
 
 #include "gtest/gtest.h"
 
 #include "asmjit/asmjit.h"
 
-#include "libcsel-rt.h"
+#include "libcjel-rt.h"
 #include "libstdhl.h"
 
 using namespace asmjit;
 
-TEST( libcsel_rt__asmjit, assembler )
+TEST( libcjel_rt__asmjit, assembler )
 {
     typedef void ( *SumIntsFunc )( int* dst, const int* a, const int* b );
 
@@ -87,7 +87,7 @@ TEST( libcsel_rt__asmjit, assembler )
     rt.release( fn );
 }
 
-TEST( libcsel_rt__asmjit, compiler )
+TEST( libcjel_rt__asmjit, compiler )
 {
     typedef uint8_t ( *Func )( void );
 
@@ -122,7 +122,7 @@ TEST( libcsel_rt__asmjit, compiler )
     rt.release( fn );
 }
 
-TEST( libcsel_rt__asmjit, compiler2 )
+TEST( libcjel_rt__asmjit, compiler2 )
 {
     JitRuntime rt;
     CodeHolder code;
@@ -203,7 +203,7 @@ TEST( libcsel_rt__asmjit, compiler2 )
     rt.release( fn );
 }
 
-TEST( libcsel_rt__asmjit, compiler3 )
+TEST( libcjel_rt__asmjit, compiler3 )
 {
     JitRuntime rt;
     CodeHolder code;
@@ -286,7 +286,7 @@ TEST( libcsel_rt__asmjit, compiler3 )
     rt.release( fn );
 }
 
-TEST( libcsel_rt__asmjit, compiler4 )
+TEST( libcjel_rt__asmjit, compiler4 )
 {
     JitRuntime rt;
     CodeHolder code;
@@ -369,7 +369,7 @@ TEST( libcsel_rt__asmjit, compiler4 )
     rt.release( fn );
 }
 
-TEST( libcsel_rt__asmjit, compiler5 )
+TEST( libcjel_rt__asmjit, compiler5 )
 {
     JitRuntime rt;
 

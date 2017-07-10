@@ -3,34 +3,34 @@
 //  All rights reserved.
 //
 //  Developed by: Philipp Paulweber
-//                https://github.com/casm-lang/libcsel-rt
+//                https://github.com/casm-lang/libcjel-rt
 //
-//  This file is part of libcsel-rt.
+//  This file is part of libcjel-rt.
 //
-//  libcsel-rt is free software: you can redistribute it and/or modify
+//  libcjel-rt is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
 //  the Free Software Foundation, either version 3 of the License, or
 //  (at your option) any later version.
 //
-//  libcsel-rt is distributed in the hope that it will be useful,
+//  libcjel-rt is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 //  GNU General Public License for more details.
 //
 //  You should have received a copy of the GNU General Public License
-//  along with libcsel-rt. If not, see <http://www.gnu.org/licenses/>.
+//  along with libcjel-rt. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef _LIB_CSELRT_CSELIR_TO_ASMJIT_PASS_H_
-#define _LIB_CSELRT_CSELIR_TO_ASMJIT_PASS_H_
+#ifndef _LIB_CJELRT_CJELIR_TO_ASMJIT_PASS_H_
+#define _LIB_CJELRT_CJELIR_TO_ASMJIT_PASS_H_
 
 #include "libpass.h"
 
 #include "../asmjit/src/asmjit/asmjit.h"
 
-#include "../csel-ir/src/Visitor.h"
+#include "../cjel-ir/src/Visitor.h"
 
-namespace libcsel_ir
+namespace libcjel_ir
 {
     class Value;
     class Constant;
@@ -38,19 +38,19 @@ namespace libcsel_ir
     class OperatorInstruction;
 }
 
-namespace libcsel_rt
+namespace libcjel_rt
 {
-    class CselIRToAsmJitPass final : public libpass::Pass,
-                                     public libcsel_ir::Visitor
+    class CjelIRToAsmJitPass final : public libpass::Pass,
+                                     public libcjel_ir::Visitor
     {
       public:
         static char id;
 
         bool run( libpass::PassResult& pr ) override;
 
-        LIB_CSELIR_VISITOR_INTERFACE;
+        LIB_CJELIR_VISITOR_INTERFACE;
 
-        class Context : public libcsel_ir::Context
+        class Context : public libcjel_ir::Context
         {
           public:
             class Callable
@@ -103,10 +103,10 @@ namespace libcsel_rt
 
             Callable* m_callable_last_accessed;
 
-            std::unordered_map< libcsel_ir::Value*, Callable > m_callables;
+            std::unordered_map< libcjel_ir::Value*, Callable > m_callables;
 
-            std::unordered_map< libcsel_ir::Value*, asmjit::X86Gp > m_val2reg;
-            std::unordered_map< libcsel_ir::Value*, asmjit::X86Mem > m_val2mem;
+            std::unordered_map< libcjel_ir::Value*, asmjit::X86Gp > m_val2reg;
+            std::unordered_map< libcjel_ir::Value*, asmjit::X86Mem > m_val2mem;
 
           public:
             Context( void )
@@ -135,12 +135,12 @@ namespace libcsel_rt
                 m_val2mem.clear();
             }
 
-            u1 hasCallable( libcsel_ir::Value* value )
+            u1 hasCallable( libcjel_ir::Value* value )
             {
                 return m_callables.find( value ) != m_callables.end();
             }
 
-            Callable& callable( libcsel_ir::Value* value = nullptr )
+            Callable& callable( libcjel_ir::Value* value = nullptr )
             {
                 if( value )
                 {
@@ -172,13 +172,13 @@ namespace libcsel_rt
                 return m_compiler;
             }
 
-            std::unordered_map< libcsel_ir::Value*, asmjit::X86Gp >& val2reg(
+            std::unordered_map< libcjel_ir::Value*, asmjit::X86Gp >& val2reg(
                 void )
             {
                 return m_val2reg;
             }
 
-            std::unordered_map< libcsel_ir::Value*, asmjit::X86Mem >& val2mem(
+            std::unordered_map< libcjel_ir::Value*, asmjit::X86Mem >& val2mem(
                 void )
             {
                 return m_val2mem;
@@ -186,18 +186,18 @@ namespace libcsel_rt
         };
 
       private:
-        void alloc_reg_for_value( libcsel_ir::Value& value, Context& c );
+        void alloc_reg_for_value( libcjel_ir::Value& value, Context& c );
 
       public:
-        libcsel_ir::Constant execute(
-            libcsel_ir::OperatorInstruction& value, Context& c );
+        libcjel_ir::Constant execute(
+            libcjel_ir::OperatorInstruction& value, Context& c );
 
-        libcsel_ir::Constant execute(
-            libcsel_ir::CallInstruction& value, Context& c );
+        libcjel_ir::Constant execute(
+            libcjel_ir::CallInstruction& value, Context& c );
     };
 }
 
-#endif // _LIB_CSELRT_CSELIR_TO_ASMJIT_PASS_H_
+#endif // _LIB_CJELRT_CJELIR_TO_ASMJIT_PASS_H_
 
 //
 //  Local variables:

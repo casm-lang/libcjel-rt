@@ -3,22 +3,22 @@
 //  All rights reserved.
 //
 //  Developed by: Philipp Paulweber
-//                https://github.com/casm-lang/libcsel-rt
+//                https://github.com/casm-lang/libcjel-rt
 //
-//  This file is part of libcsel-rt.
+//  This file is part of libcjel-rt.
 //
-//  libcsel-rt is free software: you can redistribute it and/or modify
+//  libcjel-rt is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
 //  the Free Software Foundation, either version 3 of the License, or
 //  (at your option) any later version.
 //
-//  libcsel-rt is distributed in the hope that it will be useful,
+//  libcjel-rt is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 //  GNU General Public License for more details.
 //
 //  You should have received a copy of the GNU General Public License
-//  along with libcsel-rt. If not, see <http://www.gnu.org/licenses/>.
+//  along with libcjel-rt. If not, see <http://www.gnu.org/licenses/>.
 //
 
 /**
@@ -27,27 +27,27 @@
    TODO
 */
 
-#ifndef _LIB_CSELRT_INSTRUCTION_H_
-#define _LIB_CSELRT_INSTRUCTION_H_
+#ifndef _LIB_CJELRT_INSTRUCTION_H_
+#define _LIB_CJELRT_INSTRUCTION_H_
 
-#include "CselRT.h"
+#include "CjelRT.h"
 
-namespace libcsel_ir
+namespace libcjel_ir
 {
     class Constant;
     class Instruction;
 }
 
-namespace libcsel_rt
+namespace libcjel_rt
 {
-    class Instruction : public CselRT
+    class Instruction : public CjelRT
     {
       public:
-        static libcsel_ir::Constant execute( libcsel_ir::Instruction& value );
+        static libcjel_ir::Constant execute( libcjel_ir::Instruction& value );
     };
 }
 
-#endif // _LIB_CSELRT_INSTRUCTION_H_
+#endif // _LIB_CJELRT_INSTRUCTION_H_
 
 //
 //  Local variables:
