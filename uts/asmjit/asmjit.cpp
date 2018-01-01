@@ -1,9 +1,9 @@
 //
-//  Copyright (c) 2017 CASM Organization
+//  Copyright (C) 2017-2018 CASM Organization <https://casm-lang.org>
 //  All rights reserved.
 //
 //  Developed by: Philipp Paulweber
-//                https://github.com/casm-lang/libcjel-rt
+//                <https://github.com/casm-lang/libcjel-rt>
 //
 //  This file is part of libcjel-rt.
 //
@@ -19,6 +19,24 @@
 //
 //  You should have received a copy of the GNU General Public License
 //  along with libcjel-rt. If not, see <http://www.gnu.org/licenses/>.
+//
+//  Additional permission under GNU GPL version 3 section 7
+//
+//  libcjel-rt is distributed under the terms of the GNU General Public License
+//  with the following clarification and special exception: Linking libcjel-rt
+//  statically or dynamically with other modules is making a combined work
+//  based on libcjel-rt. Thus, the terms and conditions of the GNU General
+//  Public License cover the whole combination. As a special exception,
+//  the copyright holders of libcjel-rt give you permission to link libcjel-rt
+//  with independent modules to produce an executable, regardless of the
+//  license terms of these independent modules, and to copy and distribute
+//  the resulting executable under terms of your choice, provided that you
+//  also meet, for each linked independent module, the terms and conditions
+//  of the license of that module. An independent module is a module which
+//  is not derived from or based on libcjel-rt. If you modify libcjel-rt, you
+//  may extend this exception to your version of the library, but you are
+//  not obliged to do so. If you do not wish to do so, delete this exception
+//  statement from your version.
 //
 
 #include "gtest/gtest.h"
