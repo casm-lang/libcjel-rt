@@ -39,14 +39,35 @@
 #   statement from your version.
 #
 
-TARGET = libcjel-rt
+# LIBCJEL_RT_FOUND        - system has found the package
+# LIBCJEL_RT_INCLUDE_DIRS - the package include directories
+# LIBCJEL_RT_LIBRARY      - the package library
 
-FORMAT  = src
-FORMAT += src/*
-FORMAT += etc
-FORMAT += etc/*
-FORMAT += etc/*/*
+include( LibPackage )
 
-UPDATE_ROOT = ../stdhl
+libfind_pkg_check_modules( LIBCJEL_RT_PKGCONF libcjel-rt )
 
-include .cmake/config.mk
+find_path( LIBCJEL_RT_INCLUDE_DIR
+  NAMES libcjel-rt/libcjel-rt.h
+  PATHS ${LIBCJEL_RT_PKGCONF_INCLUDE_DIRS}
+)
+
+find_library( LIBCJEL_RT_LIBRARY
+  NAMES libcjel-rt cjel-rt
+  PATHS ${LIBCJEL_RT_PKGCONF_LIBRARY_DIRS}
+)
+
+set( LIBCJEL_RT_PROCESS_INCLUDES LIBCJEL_RT_INCLUDE_DIR )
+set( LIBCJEL_RT_PROCESS_LIBS     LIBCJEL_RT_LIBRARY )
+
+libfind_process( LIBCJEL_RT )
+
+if( EXISTS "${LIBCJEL_RT_INCLUDE_DIR}" AND
+    EXISTS "${LIBCJEL_RT_LIBRARY}" AND
+    ${LIBCJEL_RT_INCLUDE_DIR} AND
+    ${LIBCJEL_RT_LIBRARY}
+    )
+  set( LIBCJEL_RT_FOUND TRUE PARENT_SCOPE )
+else()
+  set( LIBCJEL_RT_FOUND FALSE PARENT_SCOPE )
+endif()

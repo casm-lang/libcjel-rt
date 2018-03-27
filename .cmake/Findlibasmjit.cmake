@@ -39,14 +39,35 @@
 #   statement from your version.
 #
 
-TARGET = libcjel-rt
+# LIBASMJIT_FOUND        - system has found the package
+# LIBASMJIT_INCLUDE_DIRS - the package include directories
+# LIBASMJIT_LIBRARY      - the package library
 
-FORMAT  = src
-FORMAT += src/*
-FORMAT += etc
-FORMAT += etc/*
-FORMAT += etc/*/*
+include( LibPackage )
 
-UPDATE_ROOT = ../stdhl
+libfind_pkg_check_modules( LIBASMJIT_PKGCONF libasmjit )
 
-include .cmake/config.mk
+find_path( LIBASMJIT_INCLUDE_DIR
+  NAMES asmjit/asmjit.h
+  PATHS ${LIBASMJIT_PKGCONF_INCLUDE_DIRS}
+  )
+
+find_library( LIBASMJIT_LIBRARY
+  NAMES libasmjit asmjit
+  PATHS ${LIBASMJIT_PKGCONF_LIBRARY_DIRS}
+  )
+
+set( LIBASMJIT_PROCESS_INCLUDES LIBASMJIT_INCLUDE_DIR )
+set( LIBASMJIT_PROCESS_LIBS     LIBASMJIT_LIBRARY )
+
+libfind_process( LIBASMJIT )
+
+if( EXISTS "${LIBASMJIT_INCLUDE_DIR}" AND
+    EXISTS "${LIBASMJIT_LIBRARY}" AND
+    ${LIBASMJIT_INCLUDE_DIR} AND
+    ${LIBASMJIT_LIBRARY}
+    )
+  set( LIBASMJIT_FOUND TRUE PARENT_SCOPE )
+else()
+  set( LIBASMJIT_FOUND FALSE PARENT_SCOPE )
+endif()
