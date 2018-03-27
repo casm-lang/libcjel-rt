@@ -39,31 +39,11 @@
 //  statement from your version.
 //
 
-/**
-   @brief    TODO
+#include <hayai/hayai.hpp>
 
-   TODO
-*/
-
-#ifndef _LIB_CJELRT_CALLABLE_UNIT_H_
-#define _LIB_CJELRT_CALLABLE_UNIT_H_
-
-#include <libcjel-rt/CjelRT>
-
-namespace libcjel_ir
+BENCHMARK( libcjel_rt, main, 0, 0 )
 {
-    class Value;
-    class CallableUnit;
 }
-
-namespace libcjel_rt
-{
-    class CallableUnit : public CjelRT
-    {
-    };
-}
-
-#endif  // _LIB_CJELRT_CALLABLE_UNIT_H_
 
 //
 //  Local variables:

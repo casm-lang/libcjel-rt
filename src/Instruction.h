@@ -48,7 +48,7 @@
 #ifndef _LIB_CJELRT_INSTRUCTION_H_
 #define _LIB_CJELRT_INSTRUCTION_H_
 
-#include "CjelRT.h"
+#include <libcjel-rt/CjelRT>
 
 namespace libcjel_ir
 {
@@ -65,7 +65,7 @@ namespace libcjel_rt
     };
 }
 
-#endif // _LIB_CJELRT_INSTRUCTION_H_
+#endif  // _LIB_CJELRT_INSTRUCTION_H_
 
 //
 //  Local variables:

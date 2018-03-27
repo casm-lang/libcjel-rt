@@ -42,11 +42,13 @@
 #ifndef _LIB_CJELRT_CJELIR_TO_ASMJIT_PASS_H_
 #define _LIB_CJELRT_CJELIR_TO_ASMJIT_PASS_H_
 
-#include "libpass.h"
+#include <libpass/Pass>
+#include <libpass/PassData>
+#include <libpass/PassResult>
 
-#include "../asmjit/src/asmjit/asmjit.h"
+#include <libcjel-ir/Visitor>
 
-#include "../cjel-ir/src/Visitor.h"
+#include <asmjit/asmjit.h>
 
 namespace libcjel_ir
 {
@@ -58,15 +60,16 @@ namespace libcjel_ir
 
 namespace libcjel_rt
 {
-    class CjelIRToAsmJitPass final : public libpass::Pass,
-                                     public libcjel_ir::Visitor
+    class CjelIRToAsmJitPass final
+    : public libpass::Pass
+    , public libcjel_ir::Visitor
     {
       public:
         static char id;
 
         bool run( libpass::PassResult& pr ) override;
 
-        LIB_CJELIR_VISITOR_INTERFACE;
+        LIBCJEL_IR_VISITOR_INTERFACE;
 
         class Context : public libcjel_ir::Context
         {
@@ -162,9 +165,8 @@ namespace libcjel_rt
             {
                 if( value )
                 {
-                    m_callable_last_accessed
-                        = &m_callables.emplace( value, Callable() )
-                               .first->second;
+                    m_callable_last_accessed =
+                        &m_callables.emplace( value, Callable() ).first->second;
                 }
 
                 return *m_callable_last_accessed;
@@ -190,14 +192,12 @@ namespace libcjel_rt
                 return m_compiler;
             }
 
-            std::unordered_map< libcjel_ir::Value*, asmjit::X86Gp >& val2reg(
-                void )
+            std::unordered_map< libcjel_ir::Value*, asmjit::X86Gp >& val2reg( void )
             {
                 return m_val2reg;
             }
 
-            std::unordered_map< libcjel_ir::Value*, asmjit::X86Mem >& val2mem(
-                void )
+            std::unordered_map< libcjel_ir::Value*, asmjit::X86Mem >& val2mem( void )
             {
                 return m_val2mem;
             }
@@ -207,15 +207,13 @@ namespace libcjel_rt
         void alloc_reg_for_value( libcjel_ir::Value& value, Context& c );
 
       public:
-        libcjel_ir::Constant execute(
-            libcjel_ir::OperatorInstruction& value, Context& c );
+        libcjel_ir::Constant execute( libcjel_ir::OperatorInstruction& value, Context& c );
 
-        libcjel_ir::Constant execute(
-            libcjel_ir::CallInstruction& value, Context& c );
+        libcjel_ir::Constant execute( libcjel_ir::CallInstruction& value, Context& c );
     };
 }
 
-#endif // _LIB_CJELRT_CJELIR_TO_ASMJIT_PASS_H_
+#endif  // _LIB_CJELRT_CJELIR_TO_ASMJIT_PASS_H_
 
 //
 //  Local variables:

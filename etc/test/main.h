@@ -39,31 +39,14 @@
 //  statement from your version.
 //
 
-/**
-   @brief    TODO
+#ifndef _LIBCJEL_RT_TEST_MAIN_H_
+#define _LIBCJEL_RT_TEST_MAIN_H_
 
-   TODO
-*/
+#include <libstdhl/Test>
 
-#ifndef _LIB_CJELRT_CALLABLE_UNIT_H_
-#define _LIB_CJELRT_CALLABLE_UNIT_H_
+#include <libcjel-rt/libcjel-rt>
 
-#include <libcjel-rt/CjelRT>
-
-namespace libcjel_ir
-{
-    class Value;
-    class CallableUnit;
-}
-
-namespace libcjel_rt
-{
-    class CallableUnit : public CjelRT
-    {
-    };
-}
-
-#endif  // _LIB_CJELRT_CALLABLE_UNIT_H_
+#endif  // _LIBCJEL_RT_TEST_MAIN_H_
 
 //
 //  Local variables:

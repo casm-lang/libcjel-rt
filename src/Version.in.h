@@ -39,31 +39,27 @@
 //  statement from your version.
 //
 
+#ifndef _LIBCJEL_RT_VERSION_H_
+#define _LIBCJEL_RT_VERSION_H_
+
 /**
    @brief    TODO
 
    TODO
+
+   variables are automatically set by CMake
 */
-
-#ifndef _LIB_CJELRT_CALLABLE_UNIT_H_
-#define _LIB_CJELRT_CALLABLE_UNIT_H_
-
-#include <libcjel-rt/CjelRT>
-
-namespace libcjel_ir
-{
-    class Value;
-    class CallableUnit;
-}
 
 namespace libcjel_rt
 {
-    class CallableUnit : public CjelRT
-    {
-    };
+    constexpr const char* REVTAG = "@GIT_REVTAG@";
+    constexpr const char* COMMIT = "@GIT_COMMIT@";
+    constexpr const char* BRANCH = "@GIT_BRANCH@";
+    constexpr const char* LICENSE = "@GIT_LICENSE@";
+    constexpr const char* NOTICE = "@GIT_NOTICE@";
 }
 
-#endif  // _LIB_CJELRT_CALLABLE_UNIT_H_
+#endif  // _LIBCJEL_RT_VERSION_H_
 
 //
 //  Local variables:

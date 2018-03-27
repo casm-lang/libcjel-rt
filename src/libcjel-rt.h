@@ -39,31 +39,18 @@
 //  statement from your version.
 //
 
-/**
-   @brief    TODO
+#ifndef _LIB_CJELRT_H_
+#define _LIB_CJELRT_H_
 
-   TODO
-*/
-
-#ifndef _LIB_CJELRT_CALLABLE_UNIT_H_
-#define _LIB_CJELRT_CALLABLE_UNIT_H_
-
-#include <libcjel-rt/CjelRT>
-
-namespace libcjel_ir
-{
-    class Value;
-    class CallableUnit;
-}
+#include <libcjel-rt/CallableUnit>
+#include <libcjel-rt/Instruction>
+#include <libcjel-rt/Version>
 
 namespace libcjel_rt
 {
-    class CallableUnit : public CjelRT
-    {
-    };
 }
 
-#endif  // _LIB_CJELRT_CALLABLE_UNIT_H_
+#endif  // _LIB_CJELRT_H_
 
 //
 //  Local variables:

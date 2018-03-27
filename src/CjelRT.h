@@ -49,7 +49,7 @@ namespace libcjel_rt
     };
 }
 
-#endif /* _LIB_CJELRT_CJELRT_H_ */
+#endif  // _LIB_CJELRT_CJELRT_H_
 
 //
 //  Local variables:

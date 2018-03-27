@@ -41,15 +41,6 @@
 
 #include "CallableUnit.h"
 
-#include "transform/CjelIRToAsmJitPass.h"
-
-#include "../stdhl/cpp/Default.h"
-#include "../stdhl/cpp/Log.h"
-
-#include "../cjel-ir/src/CallableUnit.h"
-#include "../cjel-ir/src/Value.h"
-#include "../cjel-ir/src/Visitor.h"
-
 using namespace libcjel_rt;
 
 //

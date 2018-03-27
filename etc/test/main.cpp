@@ -39,17 +39,23 @@
 //  statement from your version.
 //
 
-#ifndef _LIB_CJELRT_H_
-#define _LIB_CJELRT_H_
+#include "main.h"
 
-#include "src/Instruction.h"
-#include "src/CallableUnit.h"
-
-namespace libcjel_rt
+void libcjel_rt_main_dummy( void )
 {
+    const auto source =
+        libstdhl::Memory::make< libstdhl::Log::Source >( "libcjel-rt", "CJEL RT Library" );
+    libstdhl::Log::defaultSource( source );
 }
 
-#endif /* _LIB_CJELRT_H_ */
+TEST( libcjel_rt_main, empty )
+{
+    std::cout << libcjel_rt::REVTAG << "\n";
+    std::cout << libcjel_rt::COMMIT << "\n";
+    std::cout << libcjel_rt::BRANCH << "\n";
+    std::cout << libcjel_rt::LICENSE << "\n";
+    std::cout << libcjel_rt::NOTICE << "\n";
+}
 
 //
 //  Local variables:

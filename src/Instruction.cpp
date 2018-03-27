@@ -41,19 +41,19 @@
 
 #include "Instruction.h"
 
-#include "transform/CjelIRToAsmJitPass.h"
+#include <libcjel-rt/transform/CjelIRToAsmJitPass>
 
-#include "../cjel-ir/src/Constant.h"
-#include "../cjel-ir/src/Instruction.h"
-#include "../cjel-ir/src/Value.h"
+#include <libcjel-ir/Constant>
+#include <libcjel-ir/Instruction>
+#include <libcjel-ir/Value>
 
-#include "../stdhl/cpp/Default.h"
-#include "../stdhl/cpp/Log.h"
+#include <libstdhl/Log>
+
+#include <cassert>
 
 using namespace libcjel_ir;
 
-libcjel_ir::Constant libcjel_rt::Instruction::execute(
-    libcjel_ir::Instruction& value )
+libcjel_ir::Constant libcjel_rt::Instruction::execute( libcjel_ir::Instruction& value )
 {
     fprintf( stderr, "%s:%i: %s\n", __FILE__, __LINE__, __FUNCTION__ );
 
@@ -70,8 +70,7 @@ libcjel_ir::Constant libcjel_rt::Instruction::execute(
     }
     else
     {
-        fprintf( stderr, "%s:%i: unimplemented instruction to be executed\n",
-            __FILE__, __LINE__ );
+        fprintf( stderr, "%s:%i: unimplemented instruction to be executed\n", __FILE__, __LINE__ );
 
         assert( 0 );
         return VoidConstant();
