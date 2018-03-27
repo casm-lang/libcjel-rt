@@ -45,8 +45,8 @@
    TODO
 */
 
-#ifndef _LIB_CJELRT_CALLABLE_UNIT_H_
-#define _LIB_CJELRT_CALLABLE_UNIT_H_
+#ifndef _LIBCJEL_RT_CALLABLE_UNIT_H_
+#define _LIBCJEL_RT_CALLABLE_UNIT_H_
 
 #include <libcjel-rt/CjelRT>
 
@@ -63,7 +63,7 @@ namespace libcjel_rt
     };
 }
 
-#endif  // _LIB_CJELRT_CALLABLE_UNIT_H_
+#endif  // _LIBCJEL_RT_CALLABLE_UNIT_H_
 
 //
 //  Local variables:

@@ -39,8 +39,8 @@
 //  statement from your version.
 //
 
-#ifndef _LIB_CJELRT_CJELRT_H_
-#define _LIB_CJELRT_CJELRT_H_
+#ifndef _LIBCJEL_RT_CJELRT_H_
+#define _LIBCJEL_RT_CJELRT_H_
 
 namespace libcjel_rt
 {
@@ -49,7 +49,7 @@ namespace libcjel_rt
     };
 }
 
-#endif  // _LIB_CJELRT_CJELRT_H_
+#endif  // _LIBCJEL_RT_CJELRT_H_
 
 //
 //  Local variables:
