@@ -39,16 +39,13 @@
 //  statement from your version.
 //
 
-#include "gtest/gtest.h"
+#include <asmjit/asmjit.h>
 
-#include "asmjit/asmjit.h"
-
-#include "libcjel-rt.h"
-#include "libstdhl.h"
+#include "main.h"
 
 using namespace asmjit;
 
-TEST( libcjel_rt__asmjit, assembler )
+TEST( libcjel_rt__libasmjit, assembler )
 {
     typedef void ( *SumIntsFunc )( int* dst, const int* a, const int* b );
 
@@ -66,8 +63,7 @@ TEST( libcjel_rt__asmjit, assembler )
     X86Xmm vec1 = x86::xmm1;
 
     FuncDetail func;
-    func.init( FuncSignature3< void, int*, const int*, const int* >(
-        CallConv::kIdHost ) );
+    func.init( FuncSignature3< void, int*, const int*, const int* >( CallConv::kIdHost ) );
 
     FuncFrameInfo ffi;
     ffi.setDirtyRegs( X86Reg::kKindVec, Utils::mask( 0, 1 ) );
@@ -105,7 +101,7 @@ TEST( libcjel_rt__asmjit, assembler )
     rt.release( fn );
 }
 
-TEST( libcjel_rt__asmjit, compiler )
+TEST( libcjel_rt__libasmjit, compiler )
 {
     typedef uint8_t ( *Func )( void );
 
@@ -115,7 +111,7 @@ TEST( libcjel_rt__asmjit, compiler )
 
     X86Compiler cc( &code );
 
-    cc.addFunc( FuncSignature0< u8 >( CallConv::kIdHost ) );
+    cc.addFunc( FuncSignature0< libstdhl::u8 >( CallConv::kIdHost ) );
 
     X86Gp r0 = cc.newU8( "r0" );
 
@@ -133,14 +129,14 @@ TEST( libcjel_rt__asmjit, compiler )
 
     ASSERT_EQ( err, 0 );
 
-    u8 result = fn();
+    libstdhl::u8 result = fn();
 
     ASSERT_EQ( (int)result, 4 );
 
     rt.release( fn );
 }
 
-TEST( libcjel_rt__asmjit, compiler2 )
+TEST( libcjel_rt__libasmjit, compiler2 )
 {
     JitRuntime rt;
     CodeHolder code;
@@ -187,12 +183,12 @@ TEST( libcjel_rt__asmjit, compiler2 )
 
     ASSERT_EQ( err, 0 );
 
-    u64 ivc;
-    u8 idc;
-    u8 bvc;
-    u8 bdc;
+    libstdhl::u64 ivc;
+    libstdhl::u8 idc;
+    libstdhl::u8 bvc;
+    libstdhl::u8 bdc;
 
-    typedef void ( *FP )( u64*, u8*, u8*, u8* );
+    typedef void ( *FP )( libstdhl::u64*, libstdhl::u8*, libstdhl::u8*, libstdhl::u8* );
 
     ivc = 25;
     idc = 1;
@@ -221,7 +217,7 @@ TEST( libcjel_rt__asmjit, compiler2 )
     rt.release( fn );
 }
 
-TEST( libcjel_rt__asmjit, compiler3 )
+TEST( libcjel_rt__libasmjit, compiler3 )
 {
     JitRuntime rt;
     CodeHolder code;
@@ -267,14 +263,14 @@ TEST( libcjel_rt__asmjit, compiler3 )
 
     struct I
     {
-        u64 v;
-        u8 d;
+        libstdhl::u64 v;
+        libstdhl::u8 d;
     };
 
     struct B
     {
-        u8 v;
-        u8 d;
+        libstdhl::u8 v;
+        libstdhl::u8 d;
     };
 
     {
@@ -304,7 +300,7 @@ TEST( libcjel_rt__asmjit, compiler3 )
     rt.release( fn );
 }
 
-TEST( libcjel_rt__asmjit, compiler4 )
+TEST( libcjel_rt__libasmjit, compiler4 )
 {
     JitRuntime rt;
     CodeHolder code;
@@ -350,14 +346,14 @@ TEST( libcjel_rt__asmjit, compiler4 )
 
     struct I
     {
-        u64 v;
-        u8 d;
+        libstdhl::u64 v;
+        libstdhl::u8 d;
     };
 
     struct B
     {
-        u8 v;
-        u8 d;
+        libstdhl::u8 v;
+        libstdhl::u8 d;
     };
 
     {
@@ -387,7 +383,7 @@ TEST( libcjel_rt__asmjit, compiler4 )
     rt.release( fn );
 }
 
-TEST( libcjel_rt__asmjit, compiler5 )
+TEST( libcjel_rt__libasmjit, compiler5 )
 {
     JitRuntime rt;
 
@@ -454,7 +450,7 @@ TEST( libcjel_rt__asmjit, compiler5 )
         cc.setArg( 1, bp );
 
         // internal mem
-        X86Mem a = cc.newStack( 9, 4 ); // { u64, u8 }
+        X86Mem a = cc.newStack( 9, 4 );  // { libstdhl::u64, libstdhl::u8 }
         X86Gp ap = cc.newUIntPtr( "a" );
         cc.lea( ap, a );
 
@@ -464,7 +460,7 @@ TEST( libcjel_rt__asmjit, compiler5 )
         cc.mov( tmp, x86::ptr_8( ip, 8 ) );
         cc.mov( x86::ptr_8( ap, 8 ), tmp );
 
-        X86Mem r = cc.newStack( 2, 4 ); // { u8, u8 }
+        X86Mem r = cc.newStack( 2, 4 );  // { libstdhl::u8, libstdhl::u8 }
         X86Gp rp = cc.newUIntPtr( "r" );
         cc.lea( rp, r );
 
@@ -499,14 +495,14 @@ TEST( libcjel_rt__asmjit, compiler5 )
 
         struct I
         {
-            u64 v;
-            u8 d;
+            libstdhl::u64 v;
+            libstdhl::u8 d;
         };
 
         struct B
         {
-            u8 v;
-            u8 d;
+            libstdhl::u8 v;
+            libstdhl::u8 d;
         };
 
         I sa = { 11, 22 };

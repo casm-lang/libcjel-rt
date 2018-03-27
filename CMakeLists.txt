@@ -98,8 +98,9 @@ add_library( ${PROJECT} STATIC
   $<TARGET_OBJECTS:${PROJECT}-cpp>
   )
 
-if( ${LIBCJEL_IR_FOUND} )
+if( ${LIBASMJIT_FOUND} )
   target_link_libraries( ${PROJECT}
+    ${LIBASMJIT_LIBRARY}
     ${LIBCJEL_IR_LIBRARY}
     ${LIBPASS_LIBRARY}
     ${LIBSTDHL_LIBRARY}

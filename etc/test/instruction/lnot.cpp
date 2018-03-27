@@ -39,66 +39,69 @@
 //  statement from your version.
 //
 
-#include "uts/main.h"
+#include "main.h"
+
+#include <libcjel-ir/Constant>
+#include <libcjel-ir/Instruction>
+#include <libcjel-ir/Intrinsic>
+#include <libcjel-ir/Scope>
+#include <libcjel-ir/Statement>
+#include <libcjel-ir/Structure>
+
+#include <libstdhl/Memory>
 
 using namespace libcjel_ir;
 
-TEST( libcjel_rt__instruction_equ, EquInstruction_Bit7 )
+TEST( libcjel_rt__instruction_lnot, LnotInstruction_false_64 )
 {
-    auto a = libstdhl::make< BitConstant >( 7, 17 );
-    auto b = libstdhl::make< BitConstant >( 7, 71 );
+    auto a_t = libstdhl::Memory::make< BitType >( 64 );
+    auto r_t = libstdhl::Memory::make< BitType >( 1 );
 
-    auto i = EquInstruction( a, b );
+    auto a = libstdhl::Memory::make< BitConstant >( a_t, 0xdeadbeef );
+    auto i = LnotInstruction( a );
+
     auto r = libcjel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( r == BitConstant( 1, false ) );
-
-    EXPECT_STREQ( r.name().c_str(), "0" );
-    EXPECT_STREQ( r.type().name().c_str(), "u1" );
+    ASSERT_TRUE( r == BitConstant( r_t, 0 ) );
 }
 
-TEST( libcjel_rt__instruction_equ, EquInstruction_true )
+TEST( libcjel_rt__instruction_lnot, LnotInstruction_true_64 )
 {
-    auto a = libstdhl::make< BitConstant >( 8, 123 );
-    auto b = libstdhl::make< BitConstant >( 8, 123 );
+    auto a_t = libstdhl::Memory::make< BitType >( 64 );
+    auto r_t = libstdhl::Memory::make< BitType >( 1 );
 
-    auto i = EquInstruction( a, b );
+    auto a = libstdhl::Memory::make< BitConstant >( a_t, 0 );
+    auto i = LnotInstruction( a );
+
     auto r = libcjel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( r == BitConstant( 1, true ) );
+    ASSERT_TRUE( r == BitConstant( r_t, 1 ) );
 }
 
-TEST( libcjel_rt__instruction_equ, EquInstruction_true_zero )
+TEST( libcjel_rt__instruction_lnot, LnotInstruction_8_true )
 {
-    auto a = libstdhl::make< BitConstant >( 8, 0 );
-    auto b = libstdhl::make< BitConstant >( 8, 0 );
+    auto a_t = libstdhl::Memory::make< BitType >( 8 );
+    auto r_t = libstdhl::Memory::make< BitType >( 1 );
 
-    auto i = EquInstruction( a, b );
+    auto a = libstdhl::Memory::make< BitConstant >( a_t, 0 );
+    auto i = LnotInstruction( a );
+
     auto r = libcjel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( r == BitConstant( 1, true ) );
+    ASSERT_TRUE( r == BitConstant( r_t, 1 ) );
 }
 
-TEST( libcjel_rt__instruction_equ, EquInstruction_false )
+TEST( libcjel_rt__instruction_lnot, LnotInstruction_8_false )
 {
-    auto a = libstdhl::make< BitConstant >( 8, 0x0f );
-    auto b = libstdhl::make< BitConstant >( 8, 0xf0 );
+    auto a_t = libstdhl::Memory::make< BitType >( 64 );
+    auto r_t = libstdhl::Memory::make< BitType >( 1 );
 
-    auto i = EquInstruction( a, b );
+    auto a = libstdhl::Memory::make< BitConstant >( a_t, 0xdeadbeef );
+    auto i = LnotInstruction( a );
+
     auto r = libcjel_rt::Instruction::execute( i );
 
-    EXPECT_TRUE( r == BitConstant( 1, false ) );
-}
-
-TEST( libcjel_rt__instruction_equ, EquInstruction_false_zero )
-{
-    auto a = libstdhl::make< BitConstant >( 8, 0 );
-    auto b = libstdhl::make< BitConstant >( 8, 123 );
-
-    auto i = EquInstruction( a, b );
-    auto r = libcjel_rt::Instruction::execute( i );
-
-    EXPECT_TRUE( r == BitConstant( 1, false ) );
+    ASSERT_TRUE( r == BitConstant( r_t, 0 ) );
 }
 
 //

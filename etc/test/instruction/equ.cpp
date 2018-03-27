@@ -39,15 +39,76 @@
 //  statement from your version.
 //
 
-#ifndef _LIB_CJELRT_UTS_MAIN_H_
-#define _LIB_CJELRT_UTS_MAIN_H_
+#include "main.h"
 
-#include "../stdhl/uts/main.h"
+#include <libcjel-ir/Constant>
+#include <libcjel-ir/Instruction>
+#include <libcjel-ir/Intrinsic>
+#include <libcjel-ir/Scope>
+#include <libcjel-ir/Statement>
+#include <libcjel-ir/Structure>
 
-#include "libcjel-ir.h"
-#include "libcjel-rt.h"
+#include <libstdhl/Memory>
 
-#endif // _LIB_CJELRT_UTS_MAIN_H_
+using namespace libcjel_ir;
+
+TEST( libcjel_rt__instruction_equ, EquInstruction_Bit7 )
+{
+    auto a = libstdhl::Memory::make< BitConstant >( 7, 17 );
+    auto b = libstdhl::Memory::make< BitConstant >( 7, 71 );
+
+    auto i = EquInstruction( a, b );
+    auto r = libcjel_rt::Instruction::execute( i );
+
+    EXPECT_TRUE( r == BitConstant( 1, false ) );
+
+    EXPECT_STREQ( r.name().c_str(), "0" );
+    EXPECT_STREQ( r.type().name().c_str(), "u1" );
+}
+
+TEST( libcjel_rt__instruction_equ, EquInstruction_true )
+{
+    auto a = libstdhl::Memory::make< BitConstant >( 8, 123 );
+    auto b = libstdhl::Memory::make< BitConstant >( 8, 123 );
+
+    auto i = EquInstruction( a, b );
+    auto r = libcjel_rt::Instruction::execute( i );
+
+    EXPECT_TRUE( r == BitConstant( 1, true ) );
+}
+
+TEST( libcjel_rt__instruction_equ, EquInstruction_true_zero )
+{
+    auto a = libstdhl::Memory::make< BitConstant >( 8, 0 );
+    auto b = libstdhl::Memory::make< BitConstant >( 8, 0 );
+
+    auto i = EquInstruction( a, b );
+    auto r = libcjel_rt::Instruction::execute( i );
+
+    EXPECT_TRUE( r == BitConstant( 1, true ) );
+}
+
+TEST( libcjel_rt__instruction_equ, EquInstruction_false )
+{
+    auto a = libstdhl::Memory::make< BitConstant >( 8, 0x0f );
+    auto b = libstdhl::Memory::make< BitConstant >( 8, 0xf0 );
+
+    auto i = EquInstruction( a, b );
+    auto r = libcjel_rt::Instruction::execute( i );
+
+    EXPECT_TRUE( r == BitConstant( 1, false ) );
+}
+
+TEST( libcjel_rt__instruction_equ, EquInstruction_false_zero )
+{
+    auto a = libstdhl::Memory::make< BitConstant >( 8, 0 );
+    auto b = libstdhl::Memory::make< BitConstant >( 8, 123 );
+
+    auto i = EquInstruction( a, b );
+    auto r = libcjel_rt::Instruction::execute( i );
+
+    EXPECT_TRUE( r == BitConstant( 1, false ) );
+}
 
 //
 //  Local variables:

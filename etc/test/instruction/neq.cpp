@@ -39,14 +39,23 @@
 //  statement from your version.
 //
 
-#include "uts/main.h"
+#include "main.h"
+
+#include <libcjel-ir/Constant>
+#include <libcjel-ir/Instruction>
+#include <libcjel-ir/Intrinsic>
+#include <libcjel-ir/Scope>
+#include <libcjel-ir/Statement>
+#include <libcjel-ir/Structure>
+
+#include <libstdhl/Memory>
 
 using namespace libcjel_ir;
 
 TEST( libcjel_rt__instruction_neq, NeqInstruction_true )
 {
-    auto a = libstdhl::make< BitConstant >( 8, 0xf0 );
-    auto b = libstdhl::make< BitConstant >( 8, 0x0f );
+    auto a = libstdhl::Memory::make< BitConstant >( 8, 0xf0 );
+    auto b = libstdhl::Memory::make< BitConstant >( 8, 0x0f );
 
     auto i = NeqInstruction( a, b );
     auto r = libcjel_rt::Instruction::execute( i );
@@ -56,8 +65,8 @@ TEST( libcjel_rt__instruction_neq, NeqInstruction_true )
 
 TEST( libcjel_rt__instruction_neq, NeqInstruction_true_zero )
 {
-    auto a = libstdhl::make< BitConstant >( 8, 0 );
-    auto b = libstdhl::make< BitConstant >( 8, 123 );
+    auto a = libstdhl::Memory::make< BitConstant >( 8, 0 );
+    auto b = libstdhl::Memory::make< BitConstant >( 8, 123 );
 
     auto i = NeqInstruction( a, b );
     auto r = libcjel_rt::Instruction::execute( i );
@@ -67,10 +76,10 @@ TEST( libcjel_rt__instruction_neq, NeqInstruction_true_zero )
 
 TEST( libcjel_rt__instruction_neq, NeqInstruction_true_zero_64 )
 {
-    auto t = libstdhl::make< BitType >( 64 );
+    auto t = libstdhl::Memory::make< BitType >( 64 );
 
-    auto a = libstdhl::make< BitConstant >( t, 0 );
-    auto b = libstdhl::make< BitConstant >( t, 123 );
+    auto a = libstdhl::Memory::make< BitConstant >( t, 0 );
+    auto b = libstdhl::Memory::make< BitConstant >( t, 123 );
 
     auto i = NeqInstruction( a, b );
     auto r = libcjel_rt::Instruction::execute( i );
@@ -80,8 +89,8 @@ TEST( libcjel_rt__instruction_neq, NeqInstruction_true_zero_64 )
 
 TEST( libcjel_rt__instruction_neq, NeqInstruction_false )
 {
-    auto a = libstdhl::make< BitConstant >( 8, 123 );
-    auto b = libstdhl::make< BitConstant >( 8, 123 );
+    auto a = libstdhl::Memory::make< BitConstant >( 8, 123 );
+    auto b = libstdhl::Memory::make< BitConstant >( 8, 123 );
 
     auto i = NeqInstruction( a, b );
     auto r = libcjel_rt::Instruction::execute( i );
@@ -91,8 +100,8 @@ TEST( libcjel_rt__instruction_neq, NeqInstruction_false )
 
 TEST( libcjel_rt__instruction_neq, NeqInstruction_false_zero )
 {
-    auto a = libstdhl::make< BitConstant >( 8, 0 );
-    auto b = libstdhl::make< BitConstant >( 8, 0 );
+    auto a = libstdhl::Memory::make< BitConstant >( 8, 0 );
+    auto b = libstdhl::Memory::make< BitConstant >( 8, 0 );
 
     auto i = NeqInstruction( a, b );
     auto r = libcjel_rt::Instruction::execute( i );
@@ -102,10 +111,10 @@ TEST( libcjel_rt__instruction_neq, NeqInstruction_false_zero )
 
 TEST( libcjel_rt__instruction_neq, NeqInstruction_false_zero_64 )
 {
-    auto t = libstdhl::make< BitType >( 64 );
+    auto t = libstdhl::Memory::make< BitType >( 64 );
 
-    auto a = libstdhl::make< BitConstant >( t, 123 );
-    auto b = libstdhl::make< BitConstant >( t, 123 );
+    auto a = libstdhl::Memory::make< BitConstant >( t, 123 );
+    auto b = libstdhl::Memory::make< BitConstant >( t, 123 );
 
     auto i = NeqInstruction( a, b );
     auto r = libcjel_rt::Instruction::execute( i );

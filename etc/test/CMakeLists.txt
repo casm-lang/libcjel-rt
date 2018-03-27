@@ -50,4 +50,9 @@ include_directories(
 
 add_library( ${PROJECT}-test OBJECT
   main.cpp
+  libasmjit.cpp
+  instruction/example.cpp
+  instruction/lnot.cpp
+  instruction/equ.cpp
+  instruction/neq.cpp
   )
