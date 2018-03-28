@@ -20,5 +20,5 @@
 	branch = master
 [submodule "lib/asmjit"]
 	path = lib/asmjit
-	url = https://github.com/casm-lang/libasmjit.git
+	url = https://github.com/casm-lang/libasmjit
 	branch = master
